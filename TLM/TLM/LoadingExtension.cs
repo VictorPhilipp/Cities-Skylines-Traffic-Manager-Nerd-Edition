@@ -263,8 +263,12 @@ namespace TrafficManager {
 				if (loadingExtensions != null) {
 					Log.Message("Loaded extensions:");
 					foreach (ILoadingExtension extension in loadingExtensions) {
+						var extensionStr = extension.ToString();
+						if ("HeightMapExtension".Equals(extensionStr) || "contourExtension".Equals(extensionStr)) continue;
+
 						Log.Message($"type: {extension.GetType().ToString()} type namespace: {extension.GetType().Namespace.ToString()} toString: {extension.ToString()}");
 						var namespaceStr = extension.GetType().Namespace.ToString();
+
 						if ("Improved_AI".Equals(namespaceStr)) {
 							IsImprovedAiLoaded = true;
 							IsPathManagerCompatible = false; // Improved AI found
