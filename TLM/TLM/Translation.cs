@@ -64,7 +64,7 @@ namespace TrafficManager
                     break;
             }
             int delimiterIndex = filename.Trim().LastIndexOf('.');
-            string translated_filename = String.Format(filename.Substring(0, delimiterIndex) + "_{0}" + filename.Substring(delimiterIndex), language.Trim().ToLower());
+            string translated_filename = filename.Substring(0, delimiterIndex) + "_" + language.Trim().ToLower() + filename.Substring(delimiterIndex);
             if (Assembly.GetExecutingAssembly().GetManifestResourceNames().Contains(PREFIX_FILENAME + translated_filename))
             {
                 return translated_filename;
