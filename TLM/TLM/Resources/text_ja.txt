@@ -7,7 +7,7 @@ Clear_Traffic 移動中車両の除去
 Disable_despawning スタック除去無効化
 Enable_despawning スタック除去有効化
 NODE_IS_LIGHT この交差点には信号があります。\n信号を削除するには「信号の付け外し」を選んでこの交差点をクリックしてください。
-NODE_IS_TIMED_LIGHT この信号は時間設定がされています。\nまず「信号の時間設定」を選んでこの交差点をクリックして「削除」をクリックしてください。
+NODE_IS_TIMED_LIGHT この交差点には時間設定された信号があります。\nまず「信号の時間設定」を選んでこの交差点をクリックして「削除」をクリックしてください。
 Select_nodes_windowTitle 交差点の選択
 Select_nodes 交差点を選択してください
 Node 交差点
@@ -22,7 +22,7 @@ Edit 編集
 Delete 削除
 Timed_traffic_lights_manager 信号の時間設定
 Add_step 状態の追加
-Remove_timed_traffic_light 信号の時間設定の削除
+Remove_timed_traffic_light 信号の削除
 Min._Time: 最小時間:
 Max._Time: 最大時間:
 Save 保存
