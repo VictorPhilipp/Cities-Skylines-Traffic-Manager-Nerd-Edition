@@ -72,6 +72,7 @@
     <Compile Include="Custom\Misc\SegmentGeometry.cs" />
     <Compile Include="LaneRestrictions.cs" />
     <Compile Include="LoadingExtension.cs" />
+    <Compile Include="Translation.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="Traffic\Direction.cs" />
     <Compile Include="Traffic\TrafficRoadRestrictions.cs" />
@@ -138,6 +139,10 @@
     <EmbeddedResource Include="Resources\sign_yield.png" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Resources\light_counter_ja.png" />
+    <EmbeddedResource Include="Resources\light_mode_ja.png" />
+    <EmbeddedResource Include="Resources\text.txt" />
+    <EmbeddedResource Include="Resources\text_ja.txt" />
     <Content Include="NLog.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -153,9 +158,9 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>mkdir "D:\Spiele\SteamLibrary\steamapps\workshop\content\255710\583429740"
-del /Q "D:\Spiele\SteamLibrary\steamapps\workshop\content\255710\583429740\*"
-xcopy /y "$(TargetDir)$(TargetName).*" "D:\Spiele\SteamLibrary\steamapps\workshop\content\255710\583429740"
+    <PostBuildEvent>mkdir "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)"
+del "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)\$(TargetFileName)"
+xcopy /y "$(TargetPath)" "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)"
 </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
