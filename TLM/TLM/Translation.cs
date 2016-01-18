@@ -74,5 +74,10 @@ namespace TrafficManager
                 return filename;
             }
         }
+
+        internal static void OnLevelUnloading()
+        {
+            textDictionary = null;
+        }
     }
 }
