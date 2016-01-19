@@ -1,18 +1,18 @@
 ﻿Switch_traffic_lights 信号の付け外し
 Add_priority_signs 優先関係標識の追加
 Manual_traffic_lights 信号の手動切替
-Timed_traffic_lights 信号の時間設定
-Change_lane_arrows 右左折車線の設定
+Timed_traffic_lights 時間設定された信号
+Change_lane_arrows 車線矢印の変更
 Clear_Traffic 移動中車両の除去
 Disable_despawning スタック除去無効化
 Enable_despawning スタック除去有効化
 NODE_IS_LIGHT この交差点には信号があります。\n信号を削除するには「信号の付け外し」を選んでこの交差点をクリックしてください。
-NODE_IS_TIMED_LIGHT この交差点には時間設定された信号があります。\nまず「信号の時間設定」を選んでこの交差点をクリックして「削除」をクリックしてください。
+NODE_IS_TIMED_LIGHT この交差点には時間設定された信号があります。\nまず「時間設定された信号」を選んでこの交差点をクリックして「削除」をクリックしてください。
 Select_nodes_windowTitle 交差点の選択
 Select_nodes 交差点を選択してください
 Node 交差点
 Deselect_all_nodes 全交差点の選択を解除
-Setup_timed_traffic_light 信号の時間設定を行う
+Setup_timed_traffic_light 信号のセットアップ
 State 状態
 Skip 次へ
 up 上へ
@@ -20,7 +20,7 @@ down 下へ
 View 閲覧
 Edit 編集
 Delete 削除
-Timed_traffic_lights_manager 信号の時間設定
+Timed_traffic_lights_manager 信号の管理
 Add_step 状態の追加
 Remove_timed_traffic_light 信号の削除
 Min._Time: 最小時間:
@@ -40,8 +40,8 @@ Moderate_green/red_phases 混雑具合によって適度に切り替える
 Short_green/red_phases 混雑具合によって細かく切り替える
 Very_short_green/red_phases 混雑具合によってとても細かく切り替える
 Extreme_short_green/red_phases 混雑具合によって非常に細かく切り替える
-Hide_counters カウンタの非表示
-Show_counters カウンタの表示
+Hide_counters カウンターの非表示
+Show_counters カウンターの表示
 Start 開始
 Stop 停止
 Enable_test_mode_(stay_in_current_step) テストモード (現在の状態を留める)
@@ -60,8 +60,8 @@ Cars,_highway: 一般車, 高速道路:
 Trucks,_city: トラック, 一般道路:
 Trucks,_highway: トラック, 高速道路:
 Vehicles_may_enter_blocked_junctions 交差点内での停車を許可
-All_vehicles_may_ignore_lane_arrows 全車両に対して右左折車線設定の無視を許可
-Busses_may_ignore_lane_arrows バスに対して右左折車線設定の無視を許可
+All_vehicles_may_ignore_lane_arrows 全車両に対して車線矢印の無視を許可
+Busses_may_ignore_lane_arrows バスに対して車線矢印の無視を許可
 Reckless_driving_(BETA_feature): 危険運転 (ベータ機能):
 Traffic_Manager:_President_Edition_(Settings_are_defined_for_each_savegame_separately) Traffic Manager: President Edition (設定は各セーブデータ毎に保存されます)
 Simulation_accuracy_(higher_accuracy_reduces_performance): シミュレーションの正確さ (高いとパフォーマンスが低下します)
