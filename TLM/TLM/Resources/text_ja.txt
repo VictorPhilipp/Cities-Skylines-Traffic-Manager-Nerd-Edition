@@ -62,7 +62,7 @@ Trucks,_highway: トラック, 高速道路:
 Vehicles_may_enter_blocked_junctions 交差点内での停車を許可
 All_vehicles_may_ignore_lane_arrows 全車両に対して車線矢印の無視を許可
 Busses_may_ignore_lane_arrows バスに対して車線矢印の無視を許可
-Reckless_driving_(BETA_feature): 危険運転 (ベータ機能):
+Reckless_driving_(BETA_feature): 無謀運転 (ベータ機能/いくらかの市民が交通ルールを無視します):
 Traffic_Manager:_President_Edition_(Settings_are_defined_for_each_savegame_separately) Traffic Manager: President Edition (設定は各セーブデータ毎に保存されます)
 Simulation_accuracy_(higher_accuracy_reduces_performance): シミュレーションの正確さ (高いとパフォーマンスが低下します)
 Enable_highway_specific_lane_merging/splitting_rules 高速道路特有の車線合流/分離ルールを適用する
@@ -79,7 +79,7 @@ Show_lanes 車線の表示
 Pathcost_multiplicator 経路のコスト係数
 Path_Of_Evil_(10_%) 悪路 (10 %)
 Rush_Hour_(5_%) ラッシュアワー (5 %)
-Minor_Complaints_(2_%) あまり不満なし (2 %)
+Minor_Complaints_(2_%) ほとんど不満なし (2 %)
 Holy_City_(0_%) 天国 (0 %)
 Forget_toggled_traffic_lights 付け外しした信号を元に戻す
 Road_is_already_in_a_group! この道路は既にグループ内にあります！
