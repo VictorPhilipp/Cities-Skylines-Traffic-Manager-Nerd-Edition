@@ -54,7 +54,7 @@ Max_speed 最大速度
 Segment 道路
 incoming 台流入
 Enable_Advanced_Vehicle_AI Advanced Vehicle AIを有効にする
-Avoidance_of_lanes_with_high_traffic_density_(low_-_high) 交通密度が高い車線を回避する感度 (低い - 高い)
+Avoidance_of_lanes_with_high_traffic_density_(low_-_high) 交通密度が高い車線を避ける感度 (低い - 高い)
 Cars,_city: 一般車, 一般道路:
 Cars,_highway: 一般車, 高速道路:
 Trucks,_city: トラック, 一般道路:
