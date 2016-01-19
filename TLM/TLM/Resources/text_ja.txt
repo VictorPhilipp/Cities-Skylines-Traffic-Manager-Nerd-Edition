@@ -17,7 +17,7 @@ State 状態
 Skip 次へ
 up 上へ
 down 下へ
-View 閲覧
+View 表示
 Edit 編集
 Delete 削除
 Timed_traffic_lights_manager 信号の管理
