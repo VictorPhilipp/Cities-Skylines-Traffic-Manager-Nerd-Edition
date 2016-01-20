@@ -72,6 +72,7 @@
     <Compile Include="Custom\Misc\SegmentGeometry.cs" />
     <Compile Include="LaneRestrictions.cs" />
     <Compile Include="LoadingExtension.cs" />
+    <Compile Include="Translation.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="Traffic\Direction.cs" />
     <Compile Include="Traffic\TrafficRoadRestrictions.cs" />
@@ -138,6 +139,10 @@
     <EmbeddedResource Include="Resources\sign_yield.png" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Resources\light_counter_ja.png" />
+    <EmbeddedResource Include="Resources\light_mode_ja.png" />
+    <EmbeddedResource Include="Resources\text.txt" />
+    <EmbeddedResource Include="Resources\text_ja.txt" />
     <Content Include="NLog.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

@@ -340,6 +340,7 @@ namespace TrafficManager {
 				TrafficLightsManual.OnLevelUnloading();
 				TrafficLightsTimed.OnLevelUnloading();
 				Flags.OnLevelUnloading();
+                Translation.OnLevelUnloading();
 
 				if (Instance != null)
 					Instance.NodeSimulationLoaded = false;
