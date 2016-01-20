@@ -23,8 +23,8 @@ Delete 削除
 Timed_traffic_lights_manager 信号の管理
 Add_step 状態の追加
 Remove_timed_traffic_light 信号の削除
-Min._Time: 最小時間:
-Max._Time: 最大時間:
+Min._Time: 最短時間:
+Max._Time: 最長時間:
 Save 保存
 Add 追加
 Sensitivity 感度
@@ -44,10 +44,10 @@ Hide_counters カウンターの非表示
 Show_counters カウンターの表示
 Start 開始
 Stop 停止
-Enable_test_mode_(stay_in_current_step) テストモード (現在の状態を留める)
+Enable_test_mode_(stay_in_current_step) テストモード有効 (現在の状態に留まる)
 avg._flow 平均流量
 avg._wait 平均待ち
-min/max 最小/最大
+min/max 最短/最長
 Lane 車線
 Set_Speed 速度{0}に設定
 Max_speed 最大速度
