@@ -14,7 +14,7 @@ namespace TrafficManager.State {
 	public class GlobalConfig {
 		public const string FILENAME = "TMPE_GlobalConfig.xml";
 		public const string BACKUP_FILENAME = FILENAME + ".bak";
-		private static int LATEST_VERSION = 5;
+		private static int LATEST_VERSION = 6;
 #if DEBUG
 		private static uint lastModificationCheckFrame = 0;
 #endif
@@ -148,6 +148,11 @@ namespace TrafficManager.State {
 		/// maximum penalty for heavy vehicles driving on an inner lane (in %)
 		/// </summary>
 		public float HeavyVehicleMaxInnerLanePenalty = 40f;
+
+		/// <summary>
+		/// penalty for a vehicle type that is restricted on the lane (path cost multiplier)
+		/// </summary>
+		public float RestrictedVehicleTypeOnLanePenalty = 10000f;
 
 
 		/// <summary>

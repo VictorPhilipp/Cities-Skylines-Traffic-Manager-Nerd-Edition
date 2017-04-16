@@ -2345,9 +2345,9 @@ namespace TrafficManager.Custom.PathFinding {
 			if (strictlyAvoidLane) {
 #if DEBUGPF
 					if (debug)
-						logBuf.Add($"ProcessItemCosts: applying strict lane avoidance on deactivated advaned AI");
+						logBuf.Add($"ProcessItemCosts: applying strict lane avoidance penalty");
 #endif
-				prevCost *= 10000f;
+				prevCost *= _conf.RestrictedVehicleTypeOnLanePenalty;
 			}
 
 			if (!useAdvancedAI) {
