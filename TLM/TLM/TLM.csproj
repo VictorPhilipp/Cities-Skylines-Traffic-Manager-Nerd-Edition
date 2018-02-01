@@ -387,6 +387,10 @@
       <Project>{D3ADE06E-F493-4819-865A-3BB44FEEDF01}</Project>
       <Name>CSUtil.Commons</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CSUtil.Redirection\CSUtil.Redirection.csproj">
+      <Project>{7dcc08ef-dc85-47a4-bd6f-79fc52c7ef13}</Project>
+      <Name>CSUtil.Redirection</Name>
+    </ProjectReference>
     <ProjectReference Include="..\TMPE.CitiesGameBridge\TMPE.CitiesGameBridge.csproj">
       <Project>{3f2f7926-5d51-4880-a2b7-4594a10d7e54}</Project>
       <Name>TMPE.CitiesGameBridge</Name>

@@ -69,7 +69,7 @@ namespace TrafficManager.Manager.Impl {
 		}
 
 		public void RemoveSegmentEnd(ushort segmentId, bool startNode) {
-#if DEBUG
+#if DEBUGGEO
 			Log._Debug($"SegmentEndManager.RemoveSegmentEnd({segmentId}, {startNode}) called");
 #endif
 			DestroySegmentEnd(GetIndex(segmentId, startNode));
@@ -87,7 +87,9 @@ namespace TrafficManager.Manager.Impl {
 		public bool UpdateSegmentEnd(ushort segmentId, bool startNode) {
 			SegmentGeometry segGeo = SegmentGeometry.Get(segmentId);
 			if (segGeo == null) {
+#if DEBUGGEO
 				Log._Debug($"SegmentEndManager.UpdateSegmentEnd({segmentId}, {startNode}): Segment {segmentId} is invalid. Removing all segment ends.");
+#endif
 				RemoveSegmentEnds(segmentId);
 				return false;
 			}
@@ -113,7 +115,9 @@ namespace TrafficManager.Manager.Impl {
 					return true;
 				}
 			} else {
+#if DEBUGGEO
 				Log._Debug($"SegmentEndManager.UpdateSegmentEnd({segmentId}, {startNode}): Segment {segmentId} @ {startNode} neither has timed light nor priority sign. Removing segment end {segmentId} @ {startNode}");
+#endif
 				RemoveSegmentEnd(segmentId, startNode);
 				return false;
 			}
@@ -133,7 +137,8 @@ namespace TrafficManager.Manager.Impl {
 
 		protected void DestroySegmentEnd(int index) {
 #if DEBUG
-			Log._Debug($"SegmentEndManager.DestroySegmentEnd({index}) called");
+			if (SegmentEnds[index] != null)
+				Log._Debug($"SegmentEndManager.DestroySegmentEnd({index}) called");
 #endif
 			SegmentEnds[index]?.Destroy();
 			SegmentEnds[index] = null;

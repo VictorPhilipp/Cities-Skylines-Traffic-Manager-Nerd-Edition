@@ -37,7 +37,7 @@ namespace TrafficManager.Manager.Impl {
 		}
 
 		public void ResetInstance(ushort instanceId) {
-			ExtInstances[instanceId].Reset();
+			ExtInstances[instanceId].Reset(false);
 		}
 
 		private ExtCitizenInstanceManager() {
@@ -54,7 +54,7 @@ namespace TrafficManager.Manager.Impl {
 
 		internal void Reset() {
 			for (int i = 0; i < ExtInstances.Length; ++i) {
-				ExtInstances[i].Reset();
+				ExtInstances[i].Reset(false);
 			}
 		}
 
@@ -98,7 +98,7 @@ namespace TrafficManager.Manager.Impl {
 					if ((Singleton<CitizenManager>.instance.m_instances.m_buffer[instanceId].m_flags & CitizenInstance.Flags.Created) == CitizenInstance.Flags.None) {
 						continue;
 					}
-					
+
 					Configuration.ExtCitizenInstanceData item = new Configuration.ExtCitizenInstanceData(instanceId);
 					item.pathMode = (int)ExtInstances[instanceId].pathMode;
 					item.failedParkingAttempts = ExtInstances[instanceId].failedParkingAttempts;

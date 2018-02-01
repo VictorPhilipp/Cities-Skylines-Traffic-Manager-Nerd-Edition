@@ -444,7 +444,7 @@ namespace TrafficManager.Custom.AI {
 		public bool CustomStartPathFind(ushort vehicleID, ref Vehicle vehicleData, Vector3 startPos, Vector3 endPos, bool startBothWays, bool endBothWays, bool undergroundTarget) {
 #if DEBUG
 			if (GlobalConfig.Instance.Debug.Switches[2])
-				Log.Warning($"CustomCarAI.CustomStartPathFind({vehicleID}): called for vehicle {vehicleID}, startPos={startPos}, endPos={endPos}, startBothWays={startBothWays}, endBothWays={endBothWays}, undergroundTarget={undergroundTarget}");
+				Log.Warning($"CustomCarAI.CustomStartPathFind({vehicleID}): VehicleID={vehicleID}, startPos={startPos}, endPos={endPos}, startBothWays={startBothWays}, endBothWays={endBothWays}, undergroundTarget={undergroundTarget}");
 #endif
 
 			ExtVehicleType vehicleType = ExtVehicleType.None;

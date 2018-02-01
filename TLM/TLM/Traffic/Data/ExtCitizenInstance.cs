@@ -202,7 +202,7 @@ namespace TrafficManager.Traffic.Data {
 		public float lastDistanceToParkedCar;
 
 		public override string ToString() {
-			return $"[ExtCitizenInstance\n" +
+			return $"\n[ExtCitizenInstance\n" +
 				"\t" + $"instanceId = {instanceId}\n" +
 				"\t" + $"pathMode = {pathMode}\n" +
 				"\t" + $"failedParkingAttempts = {failedParkingAttempts}\n" +
@@ -235,10 +235,10 @@ namespace TrafficManager.Traffic.Data {
 			return Singleton<CitizenManager>.instance.m_instances.m_buffer[instanceId].m_citizen;
 		}
 
-		internal void Reset() {
+		internal void Reset(bool debugLog = true) {
 #if DEBUG
-			if (GlobalConfig.Instance.Debug.Switches[4]) {
-				Log.Warning($"Resetting ext. citizen instance {instanceId}");
+			if (debugLog && GlobalConfig.Instance.Debug.Switches[4]) {
+				Log.Warning($"ExtCitizenInstance.Reset({instanceId}): Resetting ext. citizen instance {instanceId}");
 			}
 #endif
 			//Flags = ExtFlags.None;

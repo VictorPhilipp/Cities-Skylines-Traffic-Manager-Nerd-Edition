@@ -44,7 +44,7 @@ namespace TrafficManager.Manager.Impl {
 			}
 
 			protected override void HandleInvalidNode(NodeGeometry geometry) {
-				
+
 			}
 
 			protected override void HandleValidNode(NodeGeometry geometry) {
@@ -250,7 +250,7 @@ namespace TrafficManager.Manager.Impl {
 
 		public void RemovePrioritySignsFromNode(ushort nodeId) {
 			Log._Debug($"TrafficPriorityManager.RemovePrioritySignsFromNode: nodeId={nodeId}");
-			
+
 			Services.NetService.IterateNodeSegments(nodeId, delegate(ushort segmentId, ref NetSegment segment) {
 				RemovePrioritySignFromSegmentEnd(segmentId, nodeId == segment.m_startNode);
 				return true;
@@ -258,14 +258,18 @@ namespace TrafficManager.Manager.Impl {
 		}
 
 		public void RemovePrioritySignsFromSegment(ushort segmentId) {
+#if DEBUGGEO
 			Log._Debug($"TrafficPriorityManager.RemovePrioritySignsFromSegment: segmentId={segmentId}");
+#endif
 
 			RemovePrioritySignFromSegmentEnd(segmentId, true);
 			RemovePrioritySignFromSegmentEnd(segmentId, false);
 		}
 
 		public void RemovePrioritySignFromSegmentEnd(ushort segmentId, bool startNode) {
-			Log._Debug($"TrafficPriorityManager.RemovePrioritySignFromSegment: segmentId={segmentId}, startNode={startNode}");
+#if DEBUGGEO
+			Log._Debug($"TrafficPriorityManager.RemovePrioritySignFromSegmentEnd: segmentId={segmentId}, startNode={startNode}");
+#endif
 
 			if (startNode) {
 				PrioritySegments[segmentId].startType = PriorityType.None;
@@ -345,7 +349,7 @@ namespace TrafficManager.Manager.Impl {
 #endif
 				return true;
 			}
-			
+
 			PriorityType curSign = GetPrioritySign(curPos.m_segment, startNode);
 			if (curSign == PriorityType.None) {
 #if DEBUG
@@ -640,7 +644,7 @@ namespace TrafficManager.Manager.Impl {
 			if (debug) {
 				Log._Debug("");
 				Log._Debug($"  TrafficPriorityManager.HasVehiclePriority({vehicleId}, {incomingVehicleId}): *** Checking if vehicle {vehicleId} (main road = {onMain}) @ (seg. {curPos.m_segment}, start {startNode}, lane {curPos.m_lane}) -> (seg. {nextPos.m_segment}, lane {nextPos.m_lane}) has priority over {incomingVehicleId} (main road = {incomingOnMain}) @ (seg. {incomingState.currentSegmentId}, start {incomingState.currentStartNode}, lane {incomingState.currentLaneIndex}) -> (seg. {incomingState.nextSegmentId}, lane {incomingState.nextLaneIndex}).");
-            }
+			}
 #endif
 
 			if (targetToDir == ArrowDirection.None || incomingFromDir == ArrowDirection.None || incomingToRelDir == ArrowDirection.None) {
@@ -679,7 +683,7 @@ namespace TrafficManager.Manager.Impl {
 #if DEBUG
 			if (debug) {
 				Log._Debug($"  TrafficPriorityManager.HasVehiclePriority({vehicleId}, {incomingVehicleId}): targetToDir: {targetToDir.ToString()}, incomingFromDir: {incomingFromDir.ToString()}, incomingToRelDir: {incomingToRelDir.ToString()}");
-            }
+			}
 #endif
 
 			if (Services.SimulationService.LeftHandDrive) {
@@ -1019,7 +1023,7 @@ namespace TrafficManager.Manager.Impl {
 				return ret;
 			} catch (Exception e) {
 				Log.Error($"IsLaneOrderConflictFree({segmentId}, {leftLaneIndex}, {rightLaneIndex}): Error: {e.ToString()}");
-            }
+			}
 			return true;
 		}
 
