@@ -26,6 +26,7 @@ namespace TrafficManager.State {
 		private static UICheckBox lockMenuToggle = null;
 		private static UICheckBox enableTutorialToggle = null;
 		private static UICheckBox realisticSpeedsToggle = null;
+		private static UICheckBox rightOnRedToggle = null;
 		private static UIDropDown recklessDriversDropdown = null;
 		private static UICheckBox relaxedBussesToggle = null;
 		private static UICheckBox allRelaxedToggle = null;
@@ -85,6 +86,7 @@ namespace TrafficManager.State {
 		public static int simAccuracy = 0;
 		//public static int laneChangingRandomization = 2;
 		public static bool realisticSpeeds = true;
+		public static bool rightOnRed = false;
 		public static int recklessDrivers = 3;
 		public static bool relaxedBusses = false;
 		public static bool allRelaxed = false;
@@ -242,6 +244,7 @@ namespace TrafficManager.State {
 
 			recklessDriversDropdown = vehBehaviorGroup.AddDropdown(Translation.GetString("Reckless_driving") + ":", new string[] { Translation.GetString("Path_Of_Evil_(10_%)"), Translation.GetString("Rush_Hour_(5_%)"), Translation.GetString("Minor_Complaints_(2_%)"), Translation.GetString("Holy_City_(0_%)") }, recklessDrivers, onRecklessDriversChanged) as UIDropDown;
 			realisticSpeedsToggle = vehBehaviorGroup.AddCheckbox(Translation.GetString("Realistic_speeds"), realisticSpeeds, onRealisticSpeedsChanged) as UICheckBox;
+			rightOnRedToggle = vehBehaviorGroup.AddCheckbox(Translation.GetString("Right_on_red"), rightOnRed, onRightOnRedChanged) as UICheckBox;
 			if (SteamHelper.IsDLCOwned(SteamHelper.DLC.SnowFallDLC)) {
 				strongerRoadConditionEffectsToggle = vehBehaviorGroup.AddCheckbox(Translation.GetString("Road_condition_has_a_bigger_impact_on_vehicle_speed"), strongerRoadConditionEffects, onStrongerRoadConditionEffectsChanged) as UICheckBox;
 			}
@@ -847,6 +850,14 @@ namespace TrafficManager.State {
 			realisticSpeeds = value;
 		}
 
+		private static void onRightOnRedChanged(bool value) {
+			if (!checkGameLoaded())
+				return;
+
+			Log._Debug($"rightOnRed changed to {value}");
+			rightOnRed = value;
+		}
+
 		private static void onDisableDespawningChanged(bool value) {
 			if (!checkGameLoaded())
 				return;
@@ -1087,6 +1098,12 @@ namespace TrafficManager.State {
 			realisticSpeeds = newValue;
 			if (realisticSpeedsToggle != null)
 				realisticSpeedsToggle.isChecked = newValue;
+		}
+
+		public static void setRightOnRed(bool newValue) {
+			rightOnRed = newValue;
+			if (rightOnRed != null)
+				rightOnRedToggle.isChecked = newValue;
 		}
 
 		public static void setDisableDespawning(bool value) {
