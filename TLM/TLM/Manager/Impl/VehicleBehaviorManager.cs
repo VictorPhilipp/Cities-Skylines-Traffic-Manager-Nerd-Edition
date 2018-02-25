@@ -2,6 +2,7 @@
 using ColossalFramework.Math;
 using CSUtil.Commons;
 using CSUtil.Commons.Benchmark;
+using GenericGameBridge.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -338,6 +339,48 @@ namespace TrafficManager.Manager.Impl {
 						if (vehicleData.Info.m_vehicleType == VehicleInfo.VehicleType.Tram || vehicleData.Info.m_vehicleType == VehicleInfo.VehicleType.Train) {
 							vehicleData.m_flags2 |= Vehicle.Flags2.Yielding;
 							vehicleData.m_waitCounter = 0;
+						}
+
+						// Check if turning right, and right on red if allowed
+						if (Options.rightOnRed) {
+							// Check if vehicle has stopped first
+							if (vehicleState.JunctionTransitState == VehicleJunctionTransitState.Stop && sqrVelocity <= TrafficPriorityManager.MAX_SQR_STOP_VELOCITY) {
+								ClockDirection checkDirection = Constants.ServiceFactory.SimulationService.LeftHandDrive ? ClockDirection.Clockwise : ClockDirection.CounterClockwise;
+								Log._Debug($"VehicleBehaviorManager.MayChangeSegment({frontVehicleId}): Checking node {targetNodeId} looking for {checkDirection} segment {position.m_segment} after segment {prevPos.m_segment}");
+								short clockwiseIndex = -1;
+								bool foundUs = false;
+								bool fAdjacent = false;
+								ushort uPrevPos = prevPos.m_segment;
+								ushort uNextPost = position.m_segment;
+								ushort uFirstPos = 0;
+								ushort uLastPos = 0;
+								Constants.ServiceFactory.NetService.IterateNodeSegments(targetNodeId, checkDirection, delegate (ushort sId, ref NetSegment segment) {
+									++clockwiseIndex;
+									Log._Debug($"VehicleBehaviorManager.MayChangeSegment({frontVehicleId}): Got segment {sId}");
+									if (uFirstPos == 0) {
+										uFirstPos = sId;
+									}
+									uLastPos = sId;
+									if (!foundUs) {
+										if (sId == uPrevPos) {
+											foundUs = true;
+										}
+										return true; // Keep going
+									} else {
+										if (sId == uNextPost) {
+											fAdjacent = true;
+										}
+										return false; // done searching
+									}
+									// NOTREACHED
+								});
+								if (fAdjacent || (uLastPos == uPrevPos && uFirstPos == uNextPost)) {
+									Log._Debug($"VehicleBehaviorManager.MayChangeSegment({frontVehicleId}): Vehicle turning on red");
+									vehicleState.JunctionTransitState = VehicleJunctionTransitState.Leave;
+									maxSpeed = 0f; // maxSpeed should be set by caller
+									return true;
+								}
+							}
 						}
 
 						vehicleState.JunctionTransitState = VehicleJunctionTransitState.Stop;

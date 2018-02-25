@@ -151,8 +151,9 @@ General General
 Gameplay Gameplay
 Overlays Overlays
 Realistic_speeds Realistic speeds
-Evacuation_busses_may_ignore_traffic_rules Evacuation buses may ignore traffic rules
-Evacuation_busses_may_only_be_used_to_reach_a_shelter Evacuation buses may only be used to reach a shelter
+Right_on_red Right on red (Left for left-hand traffic)
+Evacuation_busses_may_ignore_traffic_rules Evacuation busses may ignore traffic rules
+Evacuation_busses_may_only_be_used_to_reach_a_shelter Evacuation busses may only be used to reach a shelter
 Vehicle_behavior Vehicle behavior
 Policies_&_Restrictions Policies & Restrictions
 At_junctions At junctions
