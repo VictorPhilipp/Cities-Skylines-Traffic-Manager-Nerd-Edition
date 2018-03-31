@@ -334,42 +334,44 @@ namespace TrafficManager.Manager.Impl {
 
 						// Check if turning right, and right on red if allowed
 						if (Options.rightOnRed) {
-							// Check if vehicle has stopped first
-							if (vehicleState.JunctionTransitState == VehicleJunctionTransitState.Stop && sqrVelocity <= TrafficPriorityManager.MAX_SQR_STOP_VELOCITY) {
-								ClockDirection checkDirection = Constants.ServiceFactory.SimulationService.LeftHandDrive ? ClockDirection.Clockwise : ClockDirection.CounterClockwise;
-								Log._Debug($"VehicleBehaviorManager.MayChangeSegment({frontVehicleId}): Checking node {targetNodeId} looking for {checkDirection} segment {position.m_segment} after segment {prevPos.m_segment}");
-								short clockwiseIndex = -1;
-								bool foundUs = false;
-								bool fAdjacent = false;
-								ushort uPrevPos = prevPos.m_segment;
-								ushort uNextPost = position.m_segment;
-								ushort uFirstPos = 0;
-								ushort uLastPos = 0;
-								Constants.ServiceFactory.NetService.IterateNodeSegments(targetNodeId, checkDirection, delegate (ushort sId, ref NetSegment segment) {
-									++clockwiseIndex;
-									Log._Debug($"VehicleBehaviorManager.MayChangeSegment({frontVehicleId}): Got segment {sId}");
-									if (uFirstPos == 0) {
-										uFirstPos = sId;
-									}
-									uLastPos = sId;
-									if (!foundUs) {
-										if (sId == uPrevPos) {
-											foundUs = true;
+							if (JunctionRestrictionsManager.Instance.IsRightOnRedAllowed(prevPos.m_segment, isTargetStartNode)) {
+								// Check if vehicle has stopped first
+								if (vehicleState.JunctionTransitState == VehicleJunctionTransitState.Stop && sqrVelocity <= TrafficPriorityManager.MAX_SQR_STOP_VELOCITY) {
+									ClockDirection checkDirection = Constants.ServiceFactory.SimulationService.LeftHandDrive ? ClockDirection.Clockwise : ClockDirection.CounterClockwise;
+									//Log._Debug($"VehicleBehaviorManager.MayChangeSegment({frontVehicleId}): Checking node {targetNodeId} looking for {checkDirection} segment {position.m_segment} after segment {prevPos.m_segment}");
+									short clockwiseIndex = -1;
+									bool foundUs = false;
+									bool fAdjacent = false;
+									ushort uPrevPos = prevPos.m_segment;
+									ushort uNextPost = position.m_segment;
+									ushort uFirstPos = 0;
+									ushort uLastPos = 0;
+									Constants.ServiceFactory.NetService.IterateNodeSegments(targetNodeId, checkDirection, delegate (ushort sId, ref NetSegment segment) {
+										++clockwiseIndex;
+										//Log._Debug($"VehicleBehaviorManager.MayChangeSegment({frontVehicleId}): Got segment {sId}");
+										if (uFirstPos == 0) {
+											uFirstPos = sId;
 										}
-										return true; // Keep going
-									} else {
-										if (sId == uNextPost) {
-											fAdjacent = true;
+										uLastPos = sId;
+										if (!foundUs) {
+											if (sId == uPrevPos) {
+												foundUs = true;
+											}
+											return true; // Keep going
+										} else {
+											if (sId == uNextPost) {
+												fAdjacent = true;
+											}
+											return false; // done searching
 										}
-										return false; // done searching
+										// NOTREACHED
+									});
+									if (fAdjacent || (uLastPos == uPrevPos && uFirstPos == uNextPost)) {
+										//Log._Debug($"VehicleBehaviorManager.MayChangeSegment({frontVehicleId}): Vehicle turning on red");
+										vehicleState.JunctionTransitState = VehicleJunctionTransitState.Leave;
+										maxSpeed = 0f; // maxSpeed should be set by caller
+										return true;
 									}
-									// NOTREACHED
-								});
-								if (fAdjacent || (uLastPos == uPrevPos && uFirstPos == uNextPost)) {
-									Log._Debug($"VehicleBehaviorManager.MayChangeSegment({frontVehicleId}): Vehicle turning on red");
-									vehicleState.JunctionTransitState = VehicleJunctionTransitState.Leave;
-									maxSpeed = 0f; // maxSpeed should be set by caller
-									return true;
 								}
 							}
 						}

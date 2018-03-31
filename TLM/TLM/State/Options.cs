@@ -54,6 +54,7 @@ namespace TrafficManager.State {
 
 		private static UICheckBox strongerRoadConditionEffectsToggle = null;
 		private static UICheckBox prohibitPocketCarsToggle = null;
+		private static UICheckBox hearseAIToggle = null;
 		private static UICheckBox advancedAIToggle = null;
 		private static UISlider altLaneSelectionRatioSlider = null;
 		private static UICheckBox highwayRulesToggle = null;
@@ -133,6 +134,8 @@ namespace TrafficManager.State {
 #endif
 		public static bool strongerRoadConditionEffects = false;
 		public static bool prohibitPocketCars = false;
+		public static bool advancedHearseAI = false;
+		public static bool startPaused = false;
 		public static bool disableDespawning = false;
 		public static bool preferOuterLane = false;
 		//public static byte publicTransportUsage = 1;
@@ -256,6 +259,9 @@ namespace TrafficManager.State {
 
 			var parkAiGroup = panelHelper.AddGroup(Translation.GetString("Parking_AI"));
 			prohibitPocketCarsToggle = parkAiGroup.AddCheckbox(Translation.GetString("Enable_more_realistic_parking"), prohibitPocketCars, onProhibitPocketCarsChanged) as UICheckBox;
+
+			var hearseAiGroup = panelHelper.AddGroup(Translation.GetString("Hearse_AI"));
+			hearseAIToggle = hearseAiGroup.AddCheckbox(Translation.GetString("Enable_better_hearse_AI"), advancedHearseAI, onAdvancedHearseAIChanged) as UICheckBox;
 
 			// VEHICLE RESTRICTIONS
 			++tabIndex;
@@ -828,6 +834,16 @@ namespace TrafficManager.State {
 			strongerRoadConditionEffects = newStrongerRoadConditionEffects;
 		}
 
+		
+		private static void onAdvancedHearseAIChanged(bool newValue) {
+			if (!checkGameLoaded())
+				return;
+
+			Log._Debug($"onAdvancedHearseAIChanged changed to {newValue}");
+
+			advancedHearseAI = newValue;
+		}
+
 		private static void onProhibitPocketCarsChanged(bool newValue) {
 			if (!checkGameLoaded())
 				return;
@@ -1104,6 +1120,16 @@ namespace TrafficManager.State {
 			rightOnRed = newValue;
 			if (rightOnRed != null)
 				rightOnRedToggle.isChecked = newValue;
+		}
+
+		public static void setHearseAI(bool newValue) {
+			advancedHearseAI = newValue;
+			if (advancedHearseAI != null)
+				hearseAIToggle.isChecked = newValue;
+		}
+
+		public static void setStartPaused(bool newValue) {
+			startPaused = newValue;
 		}
 
 		public static void setDisableDespawning(bool value) {

@@ -19,6 +19,7 @@ using TrafficManager.Traffic.Data;
 using static TrafficManager.Traffic.Data.ExtCitizenInstance;
 using CSUtil.Commons.Benchmark;
 using static TrafficManager.Custom.PathFinding.CustomPathManager;
+using TrafficManager.UI;
 
 namespace TrafficManager.Custom.AI {
 	public class CustomCarAI : CarAI { // TODO inherit from VehicleAI (in order to keep the correct references to `base`)
@@ -44,12 +45,13 @@ namespace TrafficManager.Custom.AI {
 					mainPathState = ExtPathState.Failed;
 				} else if ((pathFindFlags & PathUnit.FLAG_READY) != 0) {
 					mainPathState = ExtPathState.Ready;
+					CustomPathVisualizer.Instance.CustomAddInstance(vehicleId);
 				}
 
 #if BENCHMARK
 				using (var bm = new Benchmark(null, "UpdateCarPathState")) {
 #endif
-					if (Options.prohibitPocketCars && VehicleStateManager.Instance.VehicleStates[vehicleId].vehicleType == ExtVehicleType.PassengerCar) {
+				if (Options.prohibitPocketCars && VehicleStateManager.Instance.VehicleStates[vehicleId].vehicleType == ExtVehicleType.PassengerCar) {
 						mainPathState = AdvancedParkingManager.Instance.UpdateCarPathState(vehicleId, ref vehicleData, ref ExtCitizenInstanceManager.Instance.ExtInstances[CustomPassengerCarAI.GetDriverInstanceId(vehicleId, ref vehicleData)], mainPathState);
 					}
 #if BENCHMARK
@@ -64,6 +66,7 @@ namespace TrafficManager.Custom.AI {
 					this.PathfindSuccess(vehicleId, ref vehicleData);
 					this.TrySpawn(vehicleId, ref vehicleData);
 				} else if (mainPathState == ExtPathState.Failed) {
+					Log._Debug($"CustomCarAi::CustomSimulationStep: Could not find path for vehicle {vehicleId}");
 					vehicleData.m_flags &= ~Vehicle.Flags.WaitingPath;
 					Singleton<PathManager>.instance.ReleasePath(vehicleData.m_path);
 					vehicleData.m_path = 0u;
@@ -124,7 +127,7 @@ namespace TrafficManager.Custom.AI {
 
 			int privateServiceIndex = ItemClass.GetPrivateServiceIndex(this.m_info.m_class.m_service);
 			int maxBlockCounter = (privateServiceIndex == -1) ? 150 : 100;
-			if ((vehicleData.m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath | Vehicle.Flags.WaitingSpace)) == 0 && vehicleData.m_cargoParent == 0) {
+			if ((vehicleData.m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath | Vehicle.Flags.WaitingSpace | Vehicle.Flags.WaitingTarget)) == 0 && vehicleData.m_cargoParent == 0) {
 				Singleton<VehicleManager>.instance.ReleaseVehicle(vehicleId);
 			} else if ((int)vehicleData.m_blockCounter >= maxBlockCounter) {
 				// NON-STOCK CODE START
@@ -471,8 +474,9 @@ namespace TrafficManager.Custom.AI {
 			PathUnit.Position endPosB;
 			float endDistSqrA;
 			float endDistSqrB;
-			if (CustomPathManager.FindPathPosition(startPos, ItemClass.Service.Road, NetInfo.LaneType.Vehicle | NetInfo.LaneType.TransportVehicle, info.m_vehicleType, allowUnderground, false, 32f, out startPosA, out startPosB, out startDistSqrA, out startDistSqrB) &&
-				CustomPathManager.FindPathPosition(endPos, ItemClass.Service.Road, NetInfo.LaneType.Vehicle | NetInfo.LaneType.TransportVehicle, info.m_vehicleType, undergroundTarget, false, 32f, out endPosA, out endPosB, out endDistSqrA, out endDistSqrB)) {
+			bool fFounndStartPos = CustomPathManager.FindPathPosition(startPos, ItemClass.Service.Road, NetInfo.LaneType.Vehicle | NetInfo.LaneType.TransportVehicle, info.m_vehicleType, allowUnderground, false, 32f, out startPosA, out startPosB, out startDistSqrA, out startDistSqrB);
+			bool fFoundEndPos = CustomPathManager.FindPathPosition(endPos, ItemClass.Service.Road, NetInfo.LaneType.Vehicle | NetInfo.LaneType.TransportVehicle, info.m_vehicleType, undergroundTarget, false, 32f, out endPosA, out endPosB, out endDistSqrA, out endDistSqrB);
+			if (fFounndStartPos && fFoundEndPos) {
 				if (!startBothWays || startDistSqrA < 10f) {
 					startPosB = default(PathUnit.Position);
 				}

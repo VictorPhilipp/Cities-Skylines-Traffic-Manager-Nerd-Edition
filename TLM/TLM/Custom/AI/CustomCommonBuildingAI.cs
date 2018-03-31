@@ -42,5 +42,12 @@ namespace TrafficManager.Custom.AI {
 			extBuilding.RemovePublicTransportDemand(GlobalConfig.Instance.ParkingAI.PublicTransportDemandDecrement, true);
 			extBuilding.RemovePublicTransportDemand(GlobalConfig.Instance.ParkingAI.PublicTransportDemandDecrement, false);
 		}
+
+		public void CustomReleaseBuilding(ushort buildingID, ref Building data) {
+			DispatchManager.Instance.ReleaseBuilding(buildingID);
+			this.ManualDeactivation(buildingID, ref data);
+			this.BuildingDeactivated(buildingID, ref data);
+			base.ReleaseBuilding(buildingID, ref data);
+		}
 	}
 }

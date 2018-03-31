@@ -21,6 +21,7 @@ using CSUtil.Commons;
 using TrafficManager.Manager.Impl;
 using static TrafficManager.Custom.PathFinding.CustomPathManager;
 using TrafficManager.Traffic.Data;
+using TrafficManager.UI;
 
 namespace TrafficManager.Custom.PathFinding {
 	public class CustomPathFind : PathFind {
@@ -521,8 +522,7 @@ namespace TrafficManager.Custom.PathFinding {
 #if DEBUG
 				++_failedPathFinds;
 
-#if DEBUGNEWPF
-				if (debug) {
+				if (GlobalConfig.Instance.Debug.Switches[2]) {
 					Log._Debug($"THREAD #{Thread.CurrentThread.ManagedThreadId} PF {this._pathFindIndex}: Could not find path for unit {unit} -- path-finding failed during process");
 					string reachableBuf = "";
 					string unreachableBuf = "";
@@ -536,7 +536,6 @@ namespace TrafficManager.Custom.PathFinding {
 					}
 					Log._Debug($"THREAD #{Thread.CurrentThread.ManagedThreadId} PF {this._pathFindIndex}: Reachability graph for unit {unit}:\n== REACHABLE ==\n" + reachableBuf + "\n== UNREACHABLE ==\n" + unreachableBuf);
 				}
-#endif
 #endif
 				//CustomPathManager._instance.ResetQueueItem(unit);
 
@@ -603,7 +602,9 @@ namespace TrafficManager.Custom.PathFinding {
 						}
 					}
 #if DEBUG
-					//Log._Debug($"THREAD #{Thread.CurrentThread.ManagedThreadId} PF {this._pathFindIndex}: Path found (pfCurrentState={pfCurrentState}) for unit {unit}");
+					if (GlobalConfig.Instance.Debug.Switches[2]) {
+						Log._Debug($"THREAD #{Thread.CurrentThread.ManagedThreadId} PF {this._pathFindIndex}: Path found for unit {unit}");
+					}
 #endif
 					PathUnits.m_buffer[(int)unit].m_pathFindFlags |= PathUnit.FLAG_READY; // Path found
 #if DEBUG
@@ -682,14 +683,14 @@ namespace TrafficManager.Custom.PathFinding {
 #if DEBUG
 			++_failedPathFinds;
 
-#if DEBUGNEWPF
-			if (debug)
+			if (GlobalConfig.Instance.Debug.Switches[2])
 				Log._Debug($"THREAD #{Thread.CurrentThread.ManagedThreadId} PF {this._pathFindIndex}: Could not find path for unit {unit} -- internal error: for loop break");
-#endif
 #endif
 			//CustomPathManager._instance.ResetQueueItem(unit);
 #if DEBUG
-			//Log._Debug($"THREAD #{Thread.CurrentThread.ManagedThreadId} PF {this._pathFindIndex}: Cannot find path (pfCurrentState={pfCurrentState}) for unit {unit}");
+			if (GlobalConfig.Instance.Debug.Switches[2]) {
+				Log._Debug($"THREAD #{Thread.CurrentThread.ManagedThreadId} PF {this._pathFindIndex}: Cannot find path for unit {unit}");
+			}
 #endif
 		}
 

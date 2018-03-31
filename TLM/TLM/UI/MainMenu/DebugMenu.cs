@@ -25,6 +25,7 @@ namespace TrafficManager.UI {
 #if QUEUEDSTATS
 		private static bool showPathFindStats = false;
 #endif
+		private static bool showPathVisualization = false;
 
 		/*private static UIButton _buttonSwitchTraffic;
 		private static UIButton _buttonPrioritySigns;
@@ -55,6 +56,8 @@ namespace TrafficManager.UI {
 		private static UIButton _printFlagsDebugInfoButton = null;
 		private static UIButton _printBenchmarkReportButton = null;
 		private static UIButton _resetBenchmarksButton = null;
+		private static UIButton _togglePathVisualizationButton = null;
+		private static UIButton _pathVisualizationFilterButton = null;
 #endif
 
 #if QUEUEDSTATS
@@ -196,6 +199,12 @@ namespace TrafficManager.UI {
 			y += 40;
 			height += 40;
 			_resetBenchmarksButton = _createButton("Reset benchmarks", y, clickResetBenchmarks);
+			y += 40;
+			height += 40;
+			_togglePathVisualizationButton = _createButton("Toggle path visualization", y, clickTogglePathVisualization);
+			y += 40;
+			height += 40;
+			_pathVisualizationFilterButton = _createButton("Path visualization filter", y, clickPathVisualizationFilter);
 			y += 40;
 			height += 40;
 #endif
@@ -404,6 +413,23 @@ namespace TrafficManager.UI {
 				BenchmarkProfileProvider.Instance.ClearProfiles();
 			});
 		}
+
+		private void clickTogglePathVisualization(UIComponent component, UIMouseEventParameter eventParam) {
+			showPathVisualization = !showPathVisualization;
+			if (showPathVisualization) {
+				CustomPathVisualizer.Instance.ShowAllPaths();
+			} else {
+				CustomPathVisualizer.Instance.HideAllPaths();
+			}
+		}
+		private void clickPathVisualizationFilter(UIComponent component, UIMouseEventParameter eventParam) {
+			if (LoadingExtension.BaseUI.GetVehicleFilterMenu().isVisible) {
+				LoadingExtension.BaseUI.GetVehicleFilterMenu().Hide();
+			} else {
+				LoadingExtension.BaseUI.GetVehicleFilterMenu().Show();
+			}
+		}
+
 
 		private void clickVehicleToNone(UIComponent component, UIMouseEventParameter eventParam) {
 			foreach (KeyValuePair<string, List<byte>> e in customEmergencyLanes) {

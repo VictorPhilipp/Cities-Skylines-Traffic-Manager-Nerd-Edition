@@ -14,6 +14,7 @@ namespace TrafficManager.Traffic.Data {
 		public TernaryBool straightLaneChangingAllowed;
 		public TernaryBool enterWhenBlockedAllowed;
 		public TernaryBool pedestrianCrossingAllowed;
+		public TernaryBool rightOnRedAllowed;
 
 		public bool IsUturnAllowed() {
 			if (uturnAllowed == TernaryBool.Undefined) {
@@ -47,6 +48,14 @@ namespace TrafficManager.Traffic.Data {
 			return TernaryBoolUtil.ToBool(pedestrianCrossingAllowed);
 		}
 
+		public bool IsRightOnRedAllowed() {
+			if (rightOnRedAllowed == TernaryBool.Undefined) {
+				return Options.rightOnRed;
+			}
+
+			return TernaryBoolUtil.ToBool(rightOnRedAllowed);
+		}
+
 		public void SetUturnAllowed(bool value) {
 			uturnAllowed = TernaryBoolUtil.ToTernaryBool(value);
 		}
@@ -63,13 +72,18 @@ namespace TrafficManager.Traffic.Data {
 			pedestrianCrossingAllowed = TernaryBoolUtil.ToTernaryBool(value);
 		}
 
+		public void SetRightOnRedAllowed(bool value) {
+			rightOnRedAllowed = TernaryBoolUtil.ToTernaryBool(value);
+		}
+
 		public bool IsDefault() {
 			bool uturnIsDefault = uturnAllowed == TernaryBool.Undefined || TernaryBoolUtil.ToBool(uturnAllowed) == Options.allowUTurns;
 			bool straightChangeIsDefault = straightLaneChangingAllowed == TernaryBool.Undefined || TernaryBoolUtil.ToBool(straightLaneChangingAllowed) == Options.allowLaneChangesWhileGoingStraight;
 			bool enterWhenBlockedIsDefault = enterWhenBlockedAllowed == TernaryBool.Undefined || TernaryBoolUtil.ToBool(enterWhenBlockedAllowed) == Options.allowEnterBlockedJunctions;
 			bool pedCrossingIsDefault = pedestrianCrossingAllowed == TernaryBool.Undefined || TernaryBoolUtil.ToBool(pedestrianCrossingAllowed);
+			bool rightOnRedIsDefault = rightOnRedAllowed == TernaryBool.Undefined || TernaryBoolUtil.ToBool(rightOnRedAllowed);
 
-			return uturnIsDefault && straightChangeIsDefault && enterWhenBlockedIsDefault && pedCrossingIsDefault;
+			return uturnIsDefault && straightChangeIsDefault && enterWhenBlockedIsDefault && pedCrossingIsDefault && rightOnRedIsDefault;
 		}
 
 		public void Reset() {
@@ -77,6 +91,7 @@ namespace TrafficManager.Traffic.Data {
 			straightLaneChangingAllowed = TernaryBool.Undefined;
 			enterWhenBlockedAllowed = TernaryBool.Undefined;
 			pedestrianCrossingAllowed = TernaryBool.Undefined;
+			rightOnRedAllowed = TernaryBool.Undefined;
 		}
 
 		public override string ToString() {
@@ -85,6 +100,7 @@ namespace TrafficManager.Traffic.Data {
 				"\t" + $"straightLaneChangingAllowed = {straightLaneChangingAllowed}\n" +
 				"\t" + $"enterWhenBlockedAllowed = {enterWhenBlockedAllowed}\n" +
 				"\t" + $"pedestrianCrossingAllowed = {pedestrianCrossingAllowed}\n" +
+				"\t" + $"rightOnRedAllowed = {rightOnRedAllowed}\n" +
 				"SegmentEndFlags]";
 		}
 	}

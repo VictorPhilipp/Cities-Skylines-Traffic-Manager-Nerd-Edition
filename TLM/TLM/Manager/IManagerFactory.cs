@@ -26,5 +26,6 @@ namespace TrafficManager.Manager {
 		IVehicleBehaviorManager VehicleBehaviorManager { get; }
 		IVehicleRestrictionsManager VehicleRestrictionsManager { get; }
 		IVehicleStateManager VehicleStateManager { get; }
+		IDispatchManager DispatchManager { get; }
 	}
 }

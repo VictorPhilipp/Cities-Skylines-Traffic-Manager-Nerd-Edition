@@ -15,6 +15,7 @@ namespace TrafficManager.UI {
 		public MainMenuPanel MainMenu { get; private set; }
 #if DEBUG
 		public DebugMenuPanel DebugMenu { get; private set; }
+		public VehicleFilterMenuPanel VehicleFilterMenu { get; private set; }
 #endif
 		public static TrafficManagerTool GetTrafficManagerTool(bool createIfRequired=true) {
 			if (tool == null && createIfRequired) {
@@ -45,6 +46,7 @@ namespace TrafficManager.UI {
 			MainMenu = (MainMenuPanel)uiView.AddUIComponent(typeof(MainMenuPanel));
 #if DEBUG
 			DebugMenu = (DebugMenuPanel)uiView.AddUIComponent(typeof(DebugMenuPanel));
+			VehicleFilterMenu = (VehicleFilterMenuPanel)uiView.AddUIComponent(typeof(VehicleFilterMenuPanel));
 #endif
 
 			ToolMode = TrafficManagerMode.None;
@@ -77,6 +79,7 @@ namespace TrafficManager.UI {
 			MainMenu = (MainMenuPanel)uiView.AddUIComponent(typeof(MainMenuPanel));
 #if DEBUG
 			DebugMenu = (DebugMenuPanel)uiView.AddUIComponent(typeof(DebugMenuPanel));
+			VehicleFilterMenu = (VehicleFilterMenuPanel)uiView.AddUIComponent(typeof(VehicleFilterMenuPanel));
 #endif
 		}
 
@@ -106,6 +109,8 @@ namespace TrafficManager.UI {
 			GetMenu().Hide();
 #if DEBUG
 			GetDebugMenu().Hide();
+			GetVehicleFilterMenu().Hide();
+
 #endif
 			TrafficManagerTool tmTool = GetTrafficManagerTool(false);
 			if (tmTool != null) {
@@ -123,6 +128,9 @@ namespace TrafficManager.UI {
 #if DEBUG
 		internal DebugMenuPanel GetDebugMenu() {
 			return DebugMenu;
+		}
+		internal VehicleFilterMenuPanel GetVehicleFilterMenu() {
+			return VehicleFilterMenu;
 		}
 #endif
 

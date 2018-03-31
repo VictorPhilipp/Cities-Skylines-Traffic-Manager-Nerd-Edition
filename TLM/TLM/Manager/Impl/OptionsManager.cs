@@ -1,4 +1,5 @@
-﻿using CSUtil.Commons;
+﻿using ColossalFramework;
+using CSUtil.Commons;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -176,6 +177,14 @@ namespace TrafficManager.Manager.Impl {
 			if (data.Length >= 38) {
 				Options.setRightOnRed(data[37] == (byte)1);
 			}
+			if (data.Length >= 39) {
+				Options.setHearseAI(data[38] == (byte)1);
+			}
+
+			bool l_fSimulationPaused;
+			if (data.Length >= 40) {
+				Options.setStartPaused(data[39] == (byte)1);
+			}
 			return true;
 		}
 
@@ -218,11 +227,9 @@ namespace TrafficManager.Manager.Impl {
 						(byte)Options.altLaneSelectionRatio,
 						(byte)Options.vehicleRestrictionsAggression,
 						(byte)(Options.trafficLightPriorityRules ? 1 : 0),
-<<<<<<< HEAD
-=======
-						(byte)(Options.realisticPublicTransport ? 1 : 0),
 						(byte)(Options.rightOnRed ? 1 : 0),
->>>>>>> 622524b... Added feature "Right on red"
+						(byte)(Options.advancedHearseAI ? 1 : 0),
+						(byte)(Singleton<SimulationManager>.instance.SimulationPaused ? 1 : 0),
 				};
 		}
 	}
