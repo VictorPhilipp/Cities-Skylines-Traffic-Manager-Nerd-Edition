@@ -103,6 +103,7 @@
     <Compile Include="Custom\Data\CustomVehicle.cs" />
     <Compile Include="Custom\Manager\CustomNetManager.cs" />
     <Compile Include="Custom\Manager\CustomCitizenManager.cs" />
+    <Compile Include="Custom\Manager\CustomTransferManager.cs" />
     <Compile Include="Custom\Manager\CustomVehicleManager.cs" />
     <Compile Include="Custom\PathFinding\CustomPathFind.cs" />
     <Compile Include="Geometry\GeometryCalculationMode.cs" />
@@ -114,6 +115,7 @@
     <Compile Include="Manager\Impl\DispatchManager.cs" />
     <Compile Include="Manager\ICustomSegmentLightsManager.cs" />
     <Compile Include="Manager\IExtBuildingManager.cs" />
+    <Compile Include="Manager\IExtCitizenManager.cs" />
     <Compile Include="Manager\IExtCitizenInstanceManager.cs" />
     <Compile Include="Manager\IFeatureManager.cs" />
     <Compile Include="Manager\IJunctionRestrictionsManager.cs" />
@@ -170,6 +172,7 @@
     <Compile Include="TrafficLight\LightMode.cs" />
     <Compile Include="TrafficLight\StepChangeMetric.cs" />
     <Compile Include="TrafficLight\TrafficLightSimulationType.cs" />
+    <Compile Include="Traffic\Data\ExtCitizen.cs" />
     <Compile Include="Traffic\Data\SegmentFlags.cs" />
     <Compile Include="Traffic\Data\SegmentEndFlags.cs" />
     <Compile Include="Traffic\ISegmentEnd.cs" />

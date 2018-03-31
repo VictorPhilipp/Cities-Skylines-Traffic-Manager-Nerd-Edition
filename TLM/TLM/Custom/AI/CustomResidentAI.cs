@@ -14,6 +14,7 @@ using TrafficManager.State;
 using TrafficManager.Traffic;
 using TrafficManager.UI;
 using UnityEngine;
+using static TrafficManager.Traffic.Data.ExtCitizen;
 using static TrafficManager.Traffic.Data.ExtCitizenInstance;
 
 namespace TrafficManager.Custom.AI {
@@ -122,7 +123,7 @@ namespace TrafficManager.Custom.AI {
 			using (var bm = new Benchmark(null, "EnrichLocalizedCitizenStatus")) {
 #endif
 				if (Options.prohibitPocketCars) {
-					ret = AdvancedParkingManager.Instance.EnrichLocalizedCitizenStatus(ret, ref ExtCitizenInstanceManager.Instance.ExtInstances[instanceID]);
+					ret = AdvancedParkingManager.Instance.EnrichLocalizedCitizenStatus(ret, ref ExtCitizenInstanceManager.Instance.ExtInstances[instanceID], ref ExtCitizenManager.Instance.ExtCitizens[data.m_citizen]);
 				}
 #if BENCHMARK
 			}
@@ -198,7 +199,7 @@ namespace TrafficManager.Custom.AI {
 					if (parkedVehicleId != 0) {
 #if DEBUG
 						if (GlobalConfig.Instance.Debug.Switches[2])
-							Log._Debug($"CustomResidentAI.GetVehicleInfo: Citizen instance {instanceID} owns a parked vehicle {parkedVehicleId}. Reusing vehicle info.");
+							Log._Debug($"CustomResidentAI.CustomGetVehicleInfo({instanceID}): Citizen instance {instanceID} owns a parked vehicle {parkedVehicleId}. Reusing vehicle info.");
 #endif
 						carInfo = Singleton<VehicleManager>.instance.m_parkedVehicles.m_buffer[parkedVehicleId].Info;
 					}
@@ -218,7 +219,7 @@ namespace TrafficManager.Custom.AI {
 					return bikeInfo;
 				}
 			}
-			
+
 			if ((useCar || useTaxi) && carInfo != null) {
 				return carInfo;
 			}

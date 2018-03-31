@@ -135,9 +135,9 @@ namespace TrafficManager.Traffic.Data {
 			/// </summary>
 			WalkingToTarget = 15,
 			/// <summary>
-			/// Indicates that the citizen is using public transport (bus/train/tram/subway) to reach the target
+			/// (DEPRECATED) Indicates that the citizen is using public transport (bus/train/tram/subway) to reach the target
 			/// </summary>
-			PublicTransportToTarget = 16,
+			__Deprecated__PublicTransportToTarget = 16,
 			/// <summary>
 			/// Indicates that the citizen is using a taxi to reach the target
 			/// </summary>
@@ -232,13 +232,18 @@ namespace TrafficManager.Traffic.Data {
 		}
 
 		public uint GetCitizenId() {
-			return Singleton<CitizenManager>.instance.m_instances.m_buffer[instanceId].m_citizen;
+			uint ret = 0;
+			Constants.ServiceFactory.CitizenService.ProcessCitizenInstance(instanceId, delegate (ushort citInstId, ref CitizenInstance citizenInst) {
+				ret = citizenInst.m_citizen;
+				return true;
+			});
+			return ret;
 		}
 
 		internal void Reset() {
 #if DEBUG
 			if (GlobalConfig.Instance.Debug.Switches[4]) {
-				Log.Warning($"Resetting ext. citizen instance {instanceId}");
+				Log.Warning($"ExtCitizenInstance.Reset({instanceId}): Resetting ext. citizen instance {instanceId}");
 			}
 #endif
 			//Flags = ExtFlags.None;
@@ -372,8 +377,6 @@ namespace TrafficManager.Traffic.Data {
 				case ExtPathMode.ApproachingParkedCar:
 				case ExtPathMode.WalkingToParkedCar:
 				case ExtPathMode.WalkingToTarget:
-				case ExtPathMode.PublicTransportToTarget:
-				case ExtPathMode.TaxiToTarget:
 					return ExtPathType.WalkingOnly;
 				default:
 					return ExtPathType.None;

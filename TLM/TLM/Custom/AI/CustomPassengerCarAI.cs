@@ -136,6 +136,7 @@ namespace TrafficManager.Custom.AI {
 
 			CitizenManager citizenManager = Singleton<CitizenManager>.instance;
 			ushort targetBuildingId = citizenManager.m_instances.m_buffer[(int)driverInstanceId].m_targetBuilding;
+			uint driverCitizenId = citizenManager.m_instances.m_buffer[(int)driverInstanceId].m_citizen;
 
 			// NON-STOCK CODE START
 			bool calculateEndPos = true;
@@ -203,7 +204,7 @@ namespace TrafficManager.Custom.AI {
 							driverExtInstance.pathMode = ExtPathMode.CalculatingCarPathToKnownParkPos;
 						}
 
-						ushort homeId = Singleton<CitizenManager>.instance.m_citizens.m_buffer[driverExtInstance.GetCitizenId()].m_homeBuilding;
+						ushort homeId = Singleton<CitizenManager>.instance.m_citizens.m_buffer[driverCitizenId].m_homeBuilding;
 						bool calcEndPos;
 						Vector3 parkPos;
 
@@ -339,28 +340,11 @@ namespace TrafficManager.Custom.AI {
 				homeID = Singleton<CitizenManager>.instance.m_citizens.m_buffer[ownerCitizenId].m_homeBuilding;
 			}
 
-			ExtParkingSpaceLocation parkingSpaceLocation;
-			ushort parkingSpaceLocationId;
-			Vector3 parkPos;
-			Quaternion parkRot;
-			float parkOffset;
-
-			bool found = false;
-#if BENCHMARK
-			using (var bm = new Benchmark(null, "FindParkingSpaceInVicinity")) {
-#endif
-				found = AdvancedParkingManager.Instance.FindParkingSpaceInVicinity(data.m_position, data.Info, homeID, 0, GlobalConfig.Instance.ParkingAI.MaxParkedCarDistanceToBuilding, out parkingSpaceLocation, out parkingSpaceLocationId, out parkPos, out parkRot, out parkOffset);
-#if BENCHMARK
-			}
-#endif
-			if (found) {
-				Singleton<VehicleManager>.instance.RemoveFromGrid(parkedId, ref data);
-				data.m_position = parkPos;
-				data.m_rotation = parkRot;
-				Singleton<VehicleManager>.instance.AddToGrid(parkedId, ref data);
-			} else {
+			// NON-STOCK CODE START
+			if (!AdvancedParkingManager.Instance.TryMoveParkedVehicle(parkedId, ref data, data.m_position, GlobalConfig.Instance.ParkingAI.MaxParkedCarDistanceToBuilding, homeID)) {
 				Singleton<VehicleManager>.instance.ReleaseParkedVehicle(parkedId);
 			}
+			// NON-STOCK CODE END
 		}
 
 		public bool CustomParkVehicle(ushort vehicleID, ref Vehicle vehicleData, PathUnit.Position pathPos, uint nextPath, int nextPositionIndex, out byte segmentOffset) {
