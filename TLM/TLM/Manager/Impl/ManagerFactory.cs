@@ -133,5 +133,11 @@ namespace TrafficManager.Manager.Impl {
 				return Impl.VehicleStateManager.Instance;
 			}
 		}
+
+		public IDispatchManager DispatchManager {
+			get {
+				return Impl.DispatchManager.Instance;
+			}
+		}
 	}
 }

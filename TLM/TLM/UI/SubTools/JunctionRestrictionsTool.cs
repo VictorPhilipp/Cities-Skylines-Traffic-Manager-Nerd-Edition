@@ -288,6 +288,27 @@ namespace TrafficManager.UI.SubTools {
 							stateUpdated = true;
 						}
 					}
+					++y;
+					x = 0;
+				}
+
+				// draw "right on red allowed" sign at (2; 0)
+				allowed = JunctionRestrictionsManager.Instance.IsRightOnRedAllowed(segmentId, startNode);
+				if (!viewOnly || !allowed) {
+					if (Constants.ServiceFactory.SimulationService.LeftHandDrive) {
+						DrawSign(viewOnly, ref camPos, ref xu, ref yu, f, ref zero, x, y, ref guiColor, allowed ? TextureResources.LeftOnRedAllowedTexture2D : TextureResources.LeftOnRedForbiddenTexture2D, out signHovered, 1.667f);
+					} else {
+						DrawSign(viewOnly, ref camPos, ref xu, ref yu, f, ref zero, x, y, ref guiColor, allowed ? TextureResources.RightOnRedAllowedTexture2D : TextureResources.RightOnRedForbiddenTexture2D, out signHovered, 1.667f);
+					}
+					
+					if (signHovered && handleClick) {
+						hovered = true;
+
+						if (MainTool.CheckClicked()) {
+							JunctionRestrictionsManager.Instance.ToggleRightOnRedAllowed(segmentId, startNode);
+							stateUpdated = true;
+						}
+					}
 				}
 			}
 
@@ -297,7 +318,7 @@ namespace TrafficManager.UI.SubTools {
 			return hovered;
 		}
 
-		private void DrawSign(bool viewOnly, ref Vector3 camPos, ref Vector3 xu, ref Vector3 yu, float f, ref Vector3 zero, int x, int y, ref Color guiColor, Texture2D signTexture, out bool hoveredHandle) {
+		private void DrawSign(bool viewOnly, ref Vector3 camPos, ref Vector3 xu, ref Vector3 yu, float f, ref Vector3 zero, int x, int y, ref Color guiColor, Texture2D signTexture, out bool hoveredHandle, float aspectRatio = 1.0f) {
 			Vector3 signCenter = zero + f * (float)x * xu + f * (float)y * yu; // in game coordinates
 
 			Vector3 signScreenPos;
@@ -313,7 +334,7 @@ namespace TrafficManager.UI.SubTools {
 			var zoom = 1.0f / diff.magnitude * 100f * MainTool.GetBaseZoom();
 			var size = (viewOnly ? 0.8f : 1f) * junctionRestrictionsSignSize * zoom;
 
-			var boundingBox = new Rect(signScreenPos.x - size / 2, signScreenPos.y - size / 2, size, size);
+			var boundingBox = new Rect(signScreenPos.x - size / 2, signScreenPos.y - size / 2, size, size * aspectRatio);
 			hoveredHandle = !viewOnly && TrafficManagerTool.IsMouseOver(boundingBox);
 			if (hoveredHandle) {
 				// mouse hovering over sign

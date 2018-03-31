@@ -61,6 +61,7 @@ namespace TrafficManager.UI {
 			return LoadingExtension.BaseUI.GetMenu().containsMouse
 #if DEBUG
 				|| LoadingExtension.BaseUI.GetDebugMenu().containsMouse
+				|| LoadingExtension.BaseUI.GetVehicleFilterMenu().containsMouse
 #endif
 				;
 		}

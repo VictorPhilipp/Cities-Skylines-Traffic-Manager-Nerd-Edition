@@ -8,18 +8,21 @@ using System.Text;
 using TrafficManager.Geometry;
 using TrafficManager.Manager;
 using TrafficManager.Manager.Impl;
+using TrafficManager.UI;
 using UnityEngine;
 
 namespace TrafficManager.Custom.Manager {
 	public class CustomVehicleManager : VehicleManager {
 		public void CustomReleaseVehicle(ushort vehicleId) {
+			CustomPathVisualizer.Instance.RemoveInstance(vehicleId);
+			DispatchManager.Instance.ReleaseVehicle(vehicleId);
 #if DEBUG
 			//Log._Debug($"CustomVehicleManager.CustomReleaseVehicle({vehicleId})");
 #endif
 #if BENCHMARK
 			using (var bm = new Benchmark(null, "OnReleaseVehicle")) {
 #endif
-				VehicleStateManager.Instance.OnReleaseVehicle(vehicleId, ref this.m_vehicles.m_buffer[vehicleId]);
+			VehicleStateManager.Instance.OnReleaseVehicle(vehicleId, ref this.m_vehicles.m_buffer[vehicleId]);
 #if BENCHMARK
 			}
 #endif

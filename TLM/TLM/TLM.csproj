@@ -11,7 +11,8 @@
     <AssemblyName>TrafficManager</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,6 +23,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>0</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>default</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -56,13 +58,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
-      <HintPath>D:\Games\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="ColossalManaged">
-      <HintPath>D:\Games\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\ColossalManaged.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\ColossalManaged.dll</HintPath>
     </Reference>
     <Reference Include="ICities">
-      <HintPath>D:\Games\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\ICities.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\ICities.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -71,13 +73,13 @@
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
-      <HintPath>D:\Games\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.Networking">
-      <HintPath>D:\Games\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\UnityEngine.Networking.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\UnityEngine.Networking.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>D:\Games\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -89,6 +91,7 @@
     <Compile Include="Custom\AI\CustomCitizenAI.cs" />
     <Compile Include="Custom\AI\CustomCommonBuildingAI.cs" />
     <Compile Include="Custom\AI\CustomFireTruckAI.cs" />
+    <Compile Include="Custom\AI\CustomHearseAI.cs" />
     <Compile Include="Custom\AI\CustomPoliceCarAI.cs" />
     <Compile Include="Custom\AI\CustomResidentAI.cs" />
     <Compile Include="Custom\AI\CustomShipAI.cs" />
@@ -100,6 +103,7 @@
     <Compile Include="Custom\Data\CustomVehicle.cs" />
     <Compile Include="Custom\Manager\CustomNetManager.cs" />
     <Compile Include="Custom\Manager\CustomCitizenManager.cs" />
+    <Compile Include="Custom\Manager\CustomTransferManager.cs" />
     <Compile Include="Custom\Manager\CustomVehicleManager.cs" />
     <Compile Include="Custom\PathFinding\CustomPathFind.cs" />
     <Compile Include="Geometry\GeometryCalculationMode.cs" />
@@ -108,6 +112,7 @@
     <Compile Include="Manager\AbstractFeatureManager.cs" />
     <Compile Include="Manager\AbstractNodeGeometryObservingManager.cs" />
     <Compile Include="Manager\AbstractSegmentGeometryObservingManager.cs" />
+    <Compile Include="Manager\Impl\DispatchManager.cs" />
     <Compile Include="Manager\ICustomSegmentLightsManager.cs" />
     <Compile Include="Manager\IExtBuildingManager.cs" />
     <Compile Include="Manager\IExtCitizenManager.cs" />
@@ -117,6 +122,7 @@
     <Compile Include="Manager\ILaneArrowManager.cs" />
     <Compile Include="Manager\ILaneConnectionManager.cs" />
     <Compile Include="Manager\Impl\ExtCitizenManager.cs" />
+    <Compile Include="Manager\Impl\IDispatchManager.cs" />
     <Compile Include="Manager\Impl\ManagerFactory.cs" />
     <Compile Include="Manager\Impl\ParkingRestrictionsManager.cs" />
     <Compile Include="Manager\Impl\RoutingManager.cs" />
@@ -191,6 +197,8 @@
     <Compile Include="Custom\PathFinding\CustomPathManager.cs" />
     <Compile Include="Geometry\Impl\SegmentGeometry.cs" />
     <Compile Include="LoadingExtension.cs" />
+    <Compile Include="UI\CustomPathVisualizer.cs" />
+    <Compile Include="UI\MainMenu\VehicleFilterMenu.cs" />
     <Compile Include="UI\RemoveVehicleButtonExtender.cs" />
     <Compile Include="UI\MainMenu\LaneConnectorButton.cs" />
     <Compile Include="UI\MainMenu\MainMenuPanel.cs" />
@@ -231,6 +239,7 @@
     <Compile Include="UI\TransportDemandViewMode.cs" />
     <Compile Include="UI\UITransportDemand.cs" />
     <Compile Include="Util\GenericObservable.cs" />
+    <Compile Include="Util\EventForwarder.cs" />
     <Compile Include="Util\GenericUnsubscriber.cs" />
     <Compile Include="Manager\ICustomManager.cs" />
     <Compile Include="Util\IObservable.cs" />
@@ -413,16 +422,32 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\remove-vehicle-btn.png" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\right_on_red_forbidden.png" />
+    <EmbeddedResource Include="Resources\right_on_red_allowed.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\left_on_red_allowed.png" />
+    <EmbeddedResource Include="Resources\left_on_red_forbidden.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>mkdir "D:\Games\Steam\steamapps\workshop\content\255710\583429740"
-del /Q "D:\Games\Steam\steamapps\workshop\content\255710\583429740\*"
-xcopy /y "$(TargetDir)TrafficManager.dll" "D:\Games\Steam\steamapps\workshop\content\255710\583429740"
-xcopy /y "$(TargetDir)TMPE.CitiesGameBridge.dll" "D:\Games\Steam\steamapps\workshop\content\255710\583429740"
-xcopy /y "$(TargetDir)TMPE.GenericGameBridge.dll" "D:\Games\Steam\steamapps\workshop\content\255710\583429740"
-xcopy /y "$(TargetDir)CSUtil.CameraControl.dll" "D:\Games\Steam\steamapps\workshop\content\255710\583429740"
-xcopy /y "$(TargetDir)CSUtil.Redirection.dll" "D:\Games\Steam\steamapps\workshop\content\255710\583429740"
-xcopy /y "$(TargetDir)CSUtil.Commons.dll" "D:\Games\Steam\steamapps\workshop\content\255710\583429740"
+    <PostBuildEvent>mkdir "C:\Users\terry\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\TrafficManager"
+del /Q "C:\Users\terry\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\TrafficManager\*"
+xcopy /y "$(TargetDir)TrafficManager.*" "C:\Users\terry\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\TrafficManager"
+xcopy /y "$(TargetDir)TMPE.CitiesGameBridge.*" "C:\Users\terry\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\TrafficManager"
+xcopy /y "$(TargetDir)TMPE.GenericGameBridge.*" "C:\Users\terry\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\TrafficManager"
+xcopy /y "$(TargetDir)CSUtil.CameraControl.*" "C:\Users\terry\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\TrafficManager"
+xcopy /y "$(TargetDir)CSUtil.Redirection.*" "C:\Users\terry\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\TrafficManager"
+xcopy /y "$(TargetDir)CSUtil.Commons.*" "C:\Users\terry\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\TrafficManager"
+
+"c:\Program Files\Mono\bin\mono.exe" "c:\Program Files\Mono\lib\mono\4.5\pdb2mdb.exe" "C:\Users\terry\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\TrafficManager\TrafficManager.dll"
+"c:\Program Files\Mono\bin\mono.exe" "c:\Program Files\Mono\lib\mono\4.5\pdb2mdb.exe" "C:\Users\terry\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\TrafficManager\TMPE.CitiesGameBridge.dll"
+"c:\Program Files\Mono\bin\mono.exe" "c:\Program Files\Mono\lib\mono\4.5\pdb2mdb.exe" "C:\Users\terry\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\TrafficManager\TMPE.GenericGameBridge.dll"
+"c:\Program Files\Mono\bin\mono.exe" "c:\Program Files\Mono\lib\mono\4.5\pdb2mdb.exe" "C:\Users\terry\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\TrafficManager\CSUtil.CameraControl.dll"
+"c:\Program Files\Mono\bin\mono.exe" "c:\Program Files\Mono\lib\mono\4.5\pdb2mdb.exe" "C:\Users\terry\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\TrafficManager\CSUtil.Redirection.dll"
+"c:\Program Files\Mono\bin\mono.exe" "c:\Program Files\Mono\lib\mono\4.5\pdb2mdb.exe" "C:\Users\terry\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\TrafficManager\CSUtil.Commons.dll"
+
 </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>

@@ -29,6 +29,10 @@ namespace TrafficManager.Traffic.Data {
 			return startNode ? startNodeFlags.IsPedestrianCrossingAllowed() : endNodeFlags.IsPedestrianCrossingAllowed();
 		}
 
+		public bool IsRightOnRedAllowed(bool startNode) {
+			return startNode ? startNodeFlags.IsRightOnRedAllowed() : endNodeFlags.IsRightOnRedAllowed();
+		}
+
 		public TernaryBool GetUturnAllowed(bool startNode) {
 			return startNode ? startNodeFlags.uturnAllowed : endNodeFlags.uturnAllowed;
 		}
@@ -43,6 +47,10 @@ namespace TrafficManager.Traffic.Data {
 
 		public TernaryBool GetPedestrianCrossingAllowed(bool startNode) {
 			return startNode ? startNodeFlags.pedestrianCrossingAllowed : endNodeFlags.pedestrianCrossingAllowed;
+		}
+
+		public TernaryBool GetRightOnRedAllowed(bool startNode) {
+			return startNode ? startNodeFlags.rightOnRedAllowed : endNodeFlags.rightOnRedAllowed;
 		}
 
 		public void SetUturnAllowed(bool startNode, bool value) {
@@ -74,6 +82,14 @@ namespace TrafficManager.Traffic.Data {
 				startNodeFlags.SetPedestrianCrossingAllowed(value);
 			} else {
 				endNodeFlags.SetPedestrianCrossingAllowed(value);
+			}
+		}
+
+		public void SetRightOnRedAllowed(bool startNode, bool value) {
+			if (startNode) {
+				startNodeFlags.SetRightOnRedAllowed(value);
+			} else {
+				endNodeFlags.SetRightOnRedAllowed(value);
 			}
 		}
 

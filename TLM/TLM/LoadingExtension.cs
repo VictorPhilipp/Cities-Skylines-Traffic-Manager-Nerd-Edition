@@ -112,6 +112,52 @@ namespace TrafficManager {
 					detourFailed = true;
 				}
 
+				//Log.Info("Redirection TransferManager.MatchOffers calls");
+				//try {
+				//	Detours.Add(new Detour(typeof(TransferManager).GetMethod("MatchOffers",
+				//			BindingFlags.NonPublic | BindingFlags.Instance,
+				//			null,
+				//			new[]
+				//			{
+				//					typeof (TransferManager.TransferReason)
+				//			},
+				//			null),
+				//			typeof(CustomTransferManager).GetMethod("CustomMatchOffers",
+				//				BindingFlags.NonPublic | BindingFlags.Instance,
+				//				null,
+				//				new[]
+				//				{
+				//					typeof (TransferManager.TransferReason)
+				//				},
+				//				null)));
+				//} catch (Exception) {
+				//	Log.Error("Could not redirect TransferManager.MatchOffers");
+				//	detourFailed = true;
+				//}
+
+				//Log.Info("Reverse-Redirection CustomTransferManager.OriginalMatchOffers calls");
+				//try {
+				//	Detours.Add(new Detour(typeof(CustomTransferManager).GetMethod("OriginalMatchOffers",
+				//			BindingFlags.NonPublic | BindingFlags.Instance,
+				//			null,
+				//			new[]
+				//			{
+				//					typeof (TransferManager.TransferReason)
+				//			},
+				//			null),
+				//			typeof(TransferManager).GetMethod("MatchOffers",
+				//				BindingFlags.NonPublic | BindingFlags.Instance,
+				//				null,
+				//				new[]
+				//				{
+				//					typeof (TransferManager.TransferReason)
+				//				},
+				//				null)));
+				//} catch (Exception) {
+				//	Log.Error("Could not reverse-redirect CustomTransferManager.OriginalMatchOffers");
+				//	detourFailed = true;
+				//}
+
 #if DEBUGBUSBUG
 				// TODO remove
 				Log.Info("Reverse-Redirection CustomNetManager::FinalizeNode calls");
@@ -1468,6 +1514,19 @@ namespace TrafficManager {
 					detourFailed = true;
 				}
 
+				Log.Info("Redirecting CommonBuildingAI::ReleaseBuilding Calls");
+				try {
+					Detours.Add(new Detour(typeof(CommonBuildingAI).GetMethod("ReleaseBuilding",
+								new[] {
+									typeof (ushort),
+									typeof (Building).MakeByRefType()
+								}),
+								typeof(CustomCommonBuildingAI).GetMethod("CustomReleaseBuilding")));
+				} catch (Exception) {
+					Log.Error("Could not redirect CommonBuildingAI::ReleaseBuilding.");
+					detourFailed = true;
+				}
+
 				Log.Info("Redirecting HumanAI Simulation Step Calls");
 				try {
 					Detours.Add(new Detour(typeof(HumanAI).GetMethod("SimulationStep",
@@ -1953,6 +2012,77 @@ namespace TrafficManager {
 							typeof(CustomAmbulanceAI).GetMethod("CustomStartPathFind")));
 				} catch (Exception) {
 					Log.Error("Could not redirect AmbulanceAI::StartPathFind");
+					detourFailed = true;
+				}
+
+				Log.Info("Redirection CustomHearseAI::CustomStartTransfer calls");
+				try {
+					Detours.Add(new Detour(typeof(HearseAI).GetMethod("StartTransfer",
+							BindingFlags.Public | BindingFlags.Instance,
+							null,
+							new[]
+							{
+								typeof (ushort), 
+								typeof (Vehicle).MakeByRefType(),
+								typeof (TransferManager.TransferReason),
+								typeof (TransferManager.TransferOffer)
+							},
+							null),
+							typeof(CustomHearseAI).GetMethod("CustomStartTransfer")));
+				} catch (Exception) {
+					Log.Error("Could not redirect CustomHearseAI::StartTransfer");
+					detourFailed = true;
+				}
+
+				Log.Info("Redirection CustomHearseAI::CustomArriveAtDestination calls");
+				try {
+					Detours.Add(new Detour(typeof(HearseAI).GetMethod("ArriveAtDestination",
+							BindingFlags.Public | BindingFlags.Instance,
+							null,
+							new[]
+							{
+								typeof (ushort),
+								typeof (Vehicle).MakeByRefType(),
+							},
+							null),
+							typeof(CustomHearseAI).GetMethod("CustomArriveAtDestination")));
+				} catch (Exception) {
+					Log.Error("Could not redirect CustomHearseAI::StartTransfer");
+					detourFailed = true;
+				}
+
+				Log.Info("Redirection CustomHearseAI::CustomSimulationStep calls");
+				try {
+					Detours.Add(new Detour(typeof(HearseAI).GetMethod("SimulationStep",
+							BindingFlags.Public | BindingFlags.Instance,
+							null,
+							new[]
+							{
+								typeof (ushort),
+								typeof (Vehicle).MakeByRefType(),
+								typeof (Vector3)
+							},
+							null),
+							typeof(CustomHearseAI).GetMethod("CustomSimulationStep")));
+				} catch (Exception) {
+					Log.Error("Could not redirect CustomHearseAI::CustomSimulationStep");
+					detourFailed = true;
+				}
+
+				Log.Info("Redirection CustomHearseAI::CustomReleaseVehicle calls");
+				try {
+					Detours.Add(new Detour(typeof(HearseAI).GetMethod("ReleaseVehicle",
+							BindingFlags.Public | BindingFlags.Instance,
+							null,
+							new[]
+							{
+								typeof (ushort),
+								typeof (Vehicle).MakeByRefType(),
+							},
+							null),
+							typeof(CustomHearseAI).GetMethod("CustomReleaseVehicle")));
+				} catch (Exception) {
+					Log.Error("Could not redirect CustomHearseAI::CustomReleaseVehicle");
 					detourFailed = true;
 				}
 
@@ -2447,6 +2577,11 @@ namespace TrafficManager {
 			DetourInited = false;
 			CustomPathManager = new CustomPathManager();
 
+#if DEBUG
+			bool l_fInited = CustomPathVisualizer.Instance.isInitialized();
+			Log.Info($"CustomPathVisualizer inited: {l_fInited}");
+#endif
+
 			RegisterCustomManagers();
 		}
 
@@ -2471,6 +2606,7 @@ namespace TrafficManager {
 			RegisteredManagers.Add(UtilityManager.Instance);
 			RegisteredManagers.Add(VehicleRestrictionsManager.Instance);
 			RegisteredManagers.Add(VehicleStateManager.Instance);
+			RegisteredManagers.Add(DispatchManager.Instance);
 		}
 
 		public override void OnReleased() {
@@ -2645,6 +2781,10 @@ namespace TrafficManager {
 
 			//InitTool();
 			//Log._Debug($"Current tool: {ToolManager.instance.m_properties.CurrentTool}");
+
+			if (Options.startPaused) {
+				Singleton<SimulationManager>.instance.SimulationPaused = true;
+			}
 
 			Log.Info("OnLevelLoaded complete.");
 		}

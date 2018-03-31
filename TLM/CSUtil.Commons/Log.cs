@@ -19,12 +19,14 @@ namespace CSUtil.Commons {
 
 		private static string logFilename = Path.Combine(Application.dataPath, "TMPE.log"); // TODO refactor log filename to configuration
 		private static Stopwatch sw = Stopwatch.StartNew();
+		private static StreamWriter w;
 
 
 		static Log() {
 			try {
 				if (File.Exists(logFilename))
 					File.Delete(logFilename);
+				w = File.AppendText(logFilename);
 			} catch (Exception) {
 				
 			}
@@ -77,13 +79,12 @@ namespace CSUtil.Commons {
 
 		private static void LogToFile(string log, LogLevel level) {
 			try {
-				using (StreamWriter w = File.AppendText(logFilename)) {
-					w.WriteLine($"[{level.ToString()}] @ {sw.ElapsedTicks} {log}");
-					if (level == LogLevel.Warning || level == LogLevel.Error) {
-						w.WriteLine((new System.Diagnostics.StackTrace()).ToString());
-						w.WriteLine();
-					}
-                }
+				w.WriteLine($"[{level.ToString()}] @ {sw.ElapsedTicks} {log}");
+				if (level == LogLevel.Warning || level == LogLevel.Error) {
+					w.WriteLine((new System.Diagnostics.StackTrace()).ToString());
+					w.WriteLine();
+				}
+				w.Flush();
 			} catch (Exception) {
 				
 			}
