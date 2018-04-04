@@ -112,52 +112,6 @@ namespace TrafficManager {
 					detourFailed = true;
 				}
 
-				//Log.Info("Redirection TransferManager.MatchOffers calls");
-				//try {
-				//	Detours.Add(new Detour(typeof(TransferManager).GetMethod("MatchOffers",
-				//			BindingFlags.NonPublic | BindingFlags.Instance,
-				//			null,
-				//			new[]
-				//			{
-				//					typeof (TransferManager.TransferReason)
-				//			},
-				//			null),
-				//			typeof(CustomTransferManager).GetMethod("CustomMatchOffers",
-				//				BindingFlags.NonPublic | BindingFlags.Instance,
-				//				null,
-				//				new[]
-				//				{
-				//					typeof (TransferManager.TransferReason)
-				//				},
-				//				null)));
-				//} catch (Exception) {
-				//	Log.Error("Could not redirect TransferManager.MatchOffers");
-				//	detourFailed = true;
-				//}
-
-				//Log.Info("Reverse-Redirection CustomTransferManager.OriginalMatchOffers calls");
-				//try {
-				//	Detours.Add(new Detour(typeof(CustomTransferManager).GetMethod("OriginalMatchOffers",
-				//			BindingFlags.NonPublic | BindingFlags.Instance,
-				//			null,
-				//			new[]
-				//			{
-				//					typeof (TransferManager.TransferReason)
-				//			},
-				//			null),
-				//			typeof(TransferManager).GetMethod("MatchOffers",
-				//				BindingFlags.NonPublic | BindingFlags.Instance,
-				//				null,
-				//				new[]
-				//				{
-				//					typeof (TransferManager.TransferReason)
-				//				},
-				//				null)));
-				//} catch (Exception) {
-				//	Log.Error("Could not reverse-redirect CustomTransferManager.OriginalMatchOffers");
-				//	detourFailed = true;
-				//}
-
 #if DEBUGBUSBUG
 				// TODO remove
 				Log.Info("Reverse-Redirection CustomNetManager::FinalizeNode calls");

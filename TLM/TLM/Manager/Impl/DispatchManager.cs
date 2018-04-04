@@ -71,465 +71,476 @@ namespace TrafficManager.Manager.Impl {
 		private uint QueuedItems;
 
 		private void DispatcherThread() {
-			while (true) {
-				Dictionary<ushort, DispatchBufferItem> l_items;
-				FastList<ushort> l_incomingVehicleReleaseRequests;
-				FastList<ushort> l_incomingBuildingReleaseRequests;
-				FastList<ushort> l_incomingVehicleArrivalRequests;
-				Log._Debug($"Dispatcher Thread #{Thread.CurrentThread.ManagedThreadId} iteration!");
-				try {
-					Monitor.Enter(QueueLock);
-					while (QueuedItems == 0u && !Terminated) {
-						Monitor.Wait(QueueLock);
-					}
-					l_items = m_incomingRequests;
-					l_incomingVehicleReleaseRequests = m_incomingVehicleReleaseRequests;
-					l_incomingBuildingReleaseRequests = m_incomingBuildingReleaseRequests;
-					l_incomingVehicleArrivalRequests = m_incomingVehicleArrivalRequests;
-					m_incomingRequests = new Dictionary<ushort, DispatchBufferItem>();
-					m_incomingBuildingReleaseRequests = new FastList<ushort>();
-					m_incomingVehicleReleaseRequests = new FastList<ushort>();
-					m_incomingVehicleArrivalRequests = new FastList<ushort>();
-					Log._Debug($"Dispatcher Thread #{Thread.CurrentThread.ManagedThreadId} Got {QueuedItems}");
-					QueuedItems = 0;
-				} finally {
-					Monitor.Exit(QueueLock);
-				}
-				if (Terminated) {
-					return;
-				}
-				foreach (ushort l_vehicle in l_incomingVehicleReleaseRequests) {
-					if (m_VehicleToBuildingAssignment.ContainsKey(l_vehicle)) {
-						if (m_BuildingsQueuedToVehicle.ContainsKey(m_VehicleToBuildingAssignment[l_vehicle].m_building)) {
-							if (m_BuildingsQueuedToVehicle[m_VehicleToBuildingAssignment[l_vehicle].m_building] == l_vehicle) {
-								Log._Debug($"DispatchManager.DispatchThread: Releasing building {m_VehicleToBuildingAssignment[l_vehicle].m_building} - Buildings Queued");
-								m_BuildingsQueuedToVehicle.Remove(m_VehicleToBuildingAssignment[l_vehicle].m_building);
-							}
+			try {
+				while (true) {
+					Dictionary<ushort, DispatchBufferItem> l_items;
+					FastList<ushort> l_incomingVehicleReleaseRequests;
+					FastList<ushort> l_incomingBuildingReleaseRequests;
+					FastList<ushort> l_incomingVehicleArrivalRequests;
+					Log._Debug($"Dispatcher Thread #{Thread.CurrentThread.ManagedThreadId} iteration!");
+					try {
+						Monitor.Enter(QueueLock);
+						while (QueuedItems == 0u && !Terminated) {
+							Monitor.Wait(QueueLock);
 						}
-						if (m_BuildingsToVehicleAssignment.ContainsKey(m_VehicleToBuildingAssignment[l_vehicle].m_building)) {
-							Log._Debug($"DispatchManager.DispatchThread: Releasing building {m_VehicleToBuildingAssignment[l_vehicle].m_building} - Buildings assigned");
-							m_BuildingsToVehicleAssignment.Remove(m_VehicleToBuildingAssignment[l_vehicle].m_building);
-						}
-						Log._Debug($"DispatchManager.DispatchThread: Releasing Vehicle {l_vehicle} - Building assigmnent");
-						m_VehicleToBuildingAssignment.Remove(l_vehicle);
+						l_items = m_incomingRequests;
+						l_incomingVehicleReleaseRequests = m_incomingVehicleReleaseRequests;
+						l_incomingBuildingReleaseRequests = m_incomingBuildingReleaseRequests;
+						l_incomingVehicleArrivalRequests = m_incomingVehicleArrivalRequests;
+						m_incomingRequests = new Dictionary<ushort, DispatchBufferItem>();
+						m_incomingBuildingReleaseRequests = new FastList<ushort>();
+						m_incomingVehicleReleaseRequests = new FastList<ushort>();
+						m_incomingVehicleArrivalRequests = new FastList<ushort>();
+						Log._Debug($"Dispatcher Thread #{Thread.CurrentThread.ManagedThreadId} Got {QueuedItems}");
+						QueuedItems = 0;
+					} finally {
+						Monitor.Exit(QueueLock);
 					}
-					if (m_VehiclePickupQueue.ContainsKey(l_vehicle)) {
-						foreach (DispatchBufferItem l_dispatchBufferItem in m_VehiclePickupQueue[l_vehicle]) {
-							if (m_BuildingsQueuedToVehicle.ContainsKey(l_dispatchBufferItem.m_building)) {
-								Log._Debug($"DispatchManager.DispatchThread: Releasing building {l_dispatchBufferItem.m_building} - Buildings Queued from vehicle pickup queue");
-								m_BuildingsQueuedToVehicle.Remove(l_dispatchBufferItem.m_building);
-							}
-						}
-						Log._Debug($"DispatchManager.DispatchThread: Releasing Vehicle {l_vehicle} - Queue");
-						m_VehiclePickupQueue.Remove(l_vehicle);
+					if (Terminated) {
+						return;
 					}
-					if (m_VehiclesNotInUse.Contains(l_vehicle)) {
-						Log._Debug($"DispatchManager.DispatchThread: Releasing Vehicle {l_vehicle} - Not in use");
-						m_VehiclesNotInUse.Remove(l_vehicle);
-					}
-				}
-				foreach (ushort l_building in l_incomingBuildingReleaseRequests) {
-					if (m_BuildingsToVehicleAssignment.ContainsKey(l_building)) {
-						ushort l_vehicle = m_BuildingsToVehicleAssignment[l_building];
-						if (m_VehiclePickupQueue.ContainsKey(l_vehicle)) {
-							DispatchBufferItem l_itemToRemove = null;
-							foreach (DispatchBufferItem l_queuedBuilding in m_VehiclePickupQueue[l_vehicle]) {
-								if (l_queuedBuilding.m_building == l_building) {
-									l_itemToRemove = l_queuedBuilding;
-									break;
+					foreach (ushort l_vehicle in l_incomingVehicleReleaseRequests) {
+						if (m_VehicleToBuildingAssignment.ContainsKey(l_vehicle)) {
+							if (m_BuildingsQueuedToVehicle.ContainsKey(m_VehicleToBuildingAssignment[l_vehicle].m_building)) {
+								if (m_BuildingsQueuedToVehicle[m_VehicleToBuildingAssignment[l_vehicle].m_building] == l_vehicle) {
+									Log._Debug($"DispatchManager.DispatchThread: Releasing building {m_VehicleToBuildingAssignment[l_vehicle].m_building} - Buildings Queued");
+									m_BuildingsQueuedToVehicle.Remove(m_VehicleToBuildingAssignment[l_vehicle].m_building);
 								}
 							}
-							if (l_itemToRemove != null) {
-								Log._Debug($"DispatchManager.DispatchThread: Removing building {l_building} from vehicle {l_vehicle} - Building removed");
-								m_VehiclePickupQueue[l_vehicle].Remove(l_itemToRemove);
+							if (m_BuildingsToVehicleAssignment.ContainsKey(m_VehicleToBuildingAssignment[l_vehicle].m_building)) {
+								Log._Debug($"DispatchManager.DispatchThread: Releasing building {m_VehicleToBuildingAssignment[l_vehicle].m_building} - Buildings assigned");
+								m_BuildingsToVehicleAssignment.Remove(m_VehicleToBuildingAssignment[l_vehicle].m_building);
 							}
-						}
-						if (m_VehicleToBuildingAssignment.ContainsKey(l_vehicle) && m_VehicleToBuildingAssignment[l_vehicle].m_building == l_building) {
-							Log._Debug($"DispatchManager.DispatchThread: Removing vehicle {l_vehicle} - Building {l_building} removed");
+							Log._Debug($"DispatchManager.DispatchThread: Releasing Vehicle {l_vehicle} - Building assigmnent");
 							m_VehicleToBuildingAssignment.Remove(l_vehicle);
 						}
-						Log._Debug($"DispatchManager.DispatchThread: Removing building {l_building} from building->vehicle");
-						m_BuildingsToVehicleAssignment.Remove(l_building);
+						if (m_VehiclePickupQueue.ContainsKey(l_vehicle)) {
+							foreach (DispatchBufferItem l_dispatchBufferItem in m_VehiclePickupQueue[l_vehicle]) {
+								if (m_BuildingsQueuedToVehicle.ContainsKey(l_dispatchBufferItem.m_building)) {
+									Log._Debug($"DispatchManager.DispatchThread: Releasing building {l_dispatchBufferItem.m_building} - Buildings Queued from vehicle pickup queue");
+									m_BuildingsQueuedToVehicle.Remove(l_dispatchBufferItem.m_building);
+								}
+							}
+							Log._Debug($"DispatchManager.DispatchThread: Releasing Vehicle {l_vehicle} - Queue");
+							m_VehiclePickupQueue.Remove(l_vehicle);
+						}
+						if (m_VehiclesNotInUse.Contains(l_vehicle)) {
+							Log._Debug($"DispatchManager.DispatchThread: Releasing Vehicle {l_vehicle} - Not in use");
+							m_VehiclesNotInUse.Remove(l_vehicle);
+						}
 					}
-				}
-				foreach (ushort l_vehicle in l_incomingVehicleArrivalRequests) {
-					if (m_VehicleToBuildingAssignment.ContainsKey(l_vehicle)) {
-						ushort l_building = m_VehicleToBuildingAssignment[l_vehicle].m_building;
+					foreach (ushort l_building in l_incomingBuildingReleaseRequests) {
 						if (m_BuildingsToVehicleAssignment.ContainsKey(l_building)) {
-							Log._Debug($"DispatchManager.DispatchThread: Removing building {l_building} from building->vehicle - Vehicle arrived");
+							ushort l_vehicle = m_BuildingsToVehicleAssignment[l_building];
+							if (m_VehiclePickupQueue.ContainsKey(l_vehicle)) {
+								DispatchBufferItem l_itemToRemove = null;
+								foreach (DispatchBufferItem l_queuedBuilding in m_VehiclePickupQueue[l_vehicle]) {
+									if (l_queuedBuilding.m_building == l_building) {
+										l_itemToRemove = l_queuedBuilding;
+										break;
+									}
+								}
+								if (l_itemToRemove != null) {
+									Log._Debug($"DispatchManager.DispatchThread: Removing building {l_building} from vehicle {l_vehicle} - Building removed");
+									m_VehiclePickupQueue[l_vehicle].Remove(l_itemToRemove);
+								}
+							}
+							if (m_VehicleToBuildingAssignment.ContainsKey(l_vehicle) && m_VehicleToBuildingAssignment[l_vehicle].m_building == l_building) {
+								Log._Debug($"DispatchManager.DispatchThread: Removing vehicle {l_vehicle} - Building {l_building} removed");
+								m_VehicleToBuildingAssignment.Remove(l_vehicle);
+							}
+							Log._Debug($"DispatchManager.DispatchThread: Removing building {l_building} from building->vehicle");
 							m_BuildingsToVehicleAssignment.Remove(l_building);
 						}
 					}
-				}
-
-				VehicleManager l_vehManager = Singleton<VehicleManager>.instance;
-
-				foreach (KeyValuePair<ushort, DispatchBufferItem> l_KVbufferItem in l_items) {
-					DispatchBufferItem l_bufferItem = l_KVbufferItem.Value;
-					Log._Debug($"DispatchManager.DispatchThread: Processing item for Vehicle {l_bufferItem.m_vehicleId} for building {l_bufferItem.m_building} for amount {l_bufferItem.m_amount}");
-					// TODO: Check our idle vehicle and see if there a closer one than the game requests
-					bool l_defaultDispatch = true;
-					bool l_thisRequestVehicleAlreadyDispatched = false; // If this is true, cannot use original vehicle.
-
-					Building l_building = Singleton<BuildingManager>.instance.m_buildings.m_buffer[l_bufferItem.m_building];
-					int l_buildingProblematicLevel = 0;
-					if ((l_building.m_problems & Notification.Problem.Death) != Notification.Problem.None) {
-						if ((l_building.m_problems & Notification.Problem.MajorProblem) != Notification.Problem.None) {
-							l_buildingProblematicLevel = 2;
-						} else {
-							l_buildingProblematicLevel = 1;
+					foreach (ushort l_vehicle in l_incomingVehicleArrivalRequests) {
+						if (m_VehicleToBuildingAssignment.ContainsKey(l_vehicle)) {
+							ushort l_building = m_VehicleToBuildingAssignment[l_vehicle].m_building;
+							if (m_BuildingsToVehicleAssignment.ContainsKey(l_building)) {
+								Log._Debug($"DispatchManager.DispatchThread: Removing building {l_building} from building->vehicle - Vehicle arrived");
+								m_BuildingsToVehicleAssignment.Remove(l_building);
+							}
 						}
 					}
 
-					if (m_VehiclePickupQueue.ContainsKey(l_bufferItem.m_vehicleId) && m_VehiclePickupQueue[l_bufferItem.m_vehicleId].Count() > 0) {
-						Log._Debug($"DispatchManager.DispatchThread: Vehicle {l_bufferItem.m_vehicleId} contains queued entries.");
-						DispatchBufferItem l_queuedItem = m_VehiclePickupQueue[l_bufferItem.m_vehicleId].First();
-						m_VehiclePickupQueue[l_bufferItem.m_vehicleId].RemoveFirst();
+					VehicleManager l_vehManager = Singleton<VehicleManager>.instance;
 
-						ref Vehicle l_vehicle = ref l_vehManager.m_vehicles.m_buffer[l_queuedItem.m_vehicleId];
-						HearseAI l_AI;
-						try {
-							l_AI = (HearseAI)l_vehicle.Info.m_vehicleAI;
-						} catch (System.InvalidCastException ex) {
-							Log.Error($"DispatchManager.DispatchThread: Vehicle {l_queuedItem.m_vehicleId} is not a hearse! {l_vehicle.Info.m_vehicleAI}");
-							continue;
+					foreach (KeyValuePair<ushort, DispatchBufferItem> l_KVbufferItem in l_items) {
+						DispatchBufferItem l_bufferItem = l_KVbufferItem.Value;
+						Log._Debug($"DispatchManager.DispatchThread: Processing item for Vehicle {l_bufferItem.m_vehicleId} for building {l_bufferItem.m_building} for amount {l_bufferItem.m_amount}");
+						// TODO: Check our idle vehicle and see if there a closer one than the game requests
+						bool l_defaultDispatch = true;
+						bool l_thisRequestVehicleAlreadyDispatched = false; // If this is true, cannot use original vehicle.
+
+						Building l_building = Singleton<BuildingManager>.instance.m_buildings.m_buffer[l_bufferItem.m_building];
+						int l_buildingProblematicLevel = 0;
+						if ((l_building.m_problems & Notification.Problem.Death) != Notification.Problem.None) {
+							if ((l_building.m_problems & Notification.Problem.MajorProblem) != Notification.Problem.None) {
+								l_buildingProblematicLevel = 2;
+							} else {
+								l_buildingProblematicLevel = 1;
+							}
 						}
 
-						if (l_vehicle.m_transferSize >= l_AI.m_corpseCapacity) {
-							Log._Debug($"DispatchManager.DispatchThread: Vehicle {l_queuedItem.m_vehicleId} Out of capacity unexpectedly. Abandoning rest of queue.");
-							// We're full with vehicles in our queue. Abandom them
-							if (m_BuildingsQueuedToVehicle.ContainsKey(l_queuedItem.m_building)) {
-								Log._Debug($"DispatchManager.DispatchThread: Removed building {l_queuedItem.m_building} from queue");
-								m_BuildingsQueuedToVehicle.Remove(l_queuedItem.m_building);
+						if (m_VehiclePickupQueue.ContainsKey(l_bufferItem.m_vehicleId) && m_VehiclePickupQueue[l_bufferItem.m_vehicleId].Count() > 0) {
+							Log._Debug($"DispatchManager.DispatchThread: Vehicle {l_bufferItem.m_vehicleId} contains queued entries.");
+							DispatchBufferItem l_queuedItem = m_VehiclePickupQueue[l_bufferItem.m_vehicleId].First();
+							m_VehiclePickupQueue[l_bufferItem.m_vehicleId].RemoveFirst();
+
+							ref Vehicle l_vehicle = ref l_vehManager.m_vehicles.m_buffer[l_queuedItem.m_vehicleId];
+							HearseAI l_AI;
+							try {
+								l_AI = (HearseAI)l_vehicle.Info.m_vehicleAI;
+							} catch (System.InvalidCastException ex) {
+								Log.Error($"DispatchManager.DispatchThread: Vehicle {l_queuedItem.m_vehicleId} is not a hearse! {l_vehicle.Info.m_vehicleAI}");
+								continue;
 							}
-							foreach (DispatchBufferItem l_Item in m_VehiclePickupQueue[l_bufferItem.m_vehicleId]) {
-								if (m_BuildingsQueuedToVehicle.ContainsKey(l_Item.m_building)) {
-									Log._Debug($"DispatchManager.DispatchThread: Removed building {l_Item.m_building} from queue");
-									m_BuildingsQueuedToVehicle.Remove(l_Item.m_building);
+
+							if (l_vehicle.m_transferSize >= l_AI.m_corpseCapacity) {
+								Log._Debug($"DispatchManager.DispatchThread: Vehicle {l_queuedItem.m_vehicleId} Out of capacity unexpectedly. Abandoning rest of queue.");
+								// We're full with vehicles in our queue. Abandom them
+								if (m_BuildingsQueuedToVehicle.ContainsKey(l_queuedItem.m_building)) {
+									Log._Debug($"DispatchManager.DispatchThread: Removed building {l_queuedItem.m_building} from queue");
+									m_BuildingsQueuedToVehicle.Remove(l_queuedItem.m_building);
 								}
+								foreach (DispatchBufferItem l_Item in m_VehiclePickupQueue[l_bufferItem.m_vehicleId]) {
+									if (m_BuildingsQueuedToVehicle.ContainsKey(l_Item.m_building)) {
+										Log._Debug($"DispatchManager.DispatchThread: Removed building {l_Item.m_building} from queue");
+										m_BuildingsQueuedToVehicle.Remove(l_Item.m_building);
+									}
+								}
+								m_VehiclePickupQueue.Remove(l_bufferItem.m_vehicleId);
+								continue;
 							}
-							m_VehiclePickupQueue.Remove(l_bufferItem.m_vehicleId);
-							continue;
-						}
 
-						//Log._Debug($"DispatchManager.DispatchThread: Adding entry for building {l_bufferItem.m_building} into unhandled requests");
-						//m_unhandledBuildingRequests.Add(l_bufferItem);
+							//Log._Debug($"DispatchManager.DispatchThread: Adding entry for building {l_bufferItem.m_building} into unhandled requests");
+							//m_unhandledBuildingRequests.Add(l_bufferItem);
 
-						m_BuildingsQueuedToVehicle.Remove(l_queuedItem.m_building);
-						Log._Debug($"DispatchManager.DispatchThread: Added vehicle {l_queuedItem.m_vehicleId} to Vehicle building assigment");
-						m_VehicleToBuildingAssignment[l_queuedItem.m_vehicleId] = l_queuedItem;
-						Log._Debug("DispatchManager.DispatchThread: Dispatching for queued entry");
-						DispatchVehicle(l_queuedItem.m_vehicleId, ref l_vehManager.m_vehicles.m_buffer[l_queuedItem.m_vehicleId], l_queuedItem.m_building, l_bufferItem.m_vehicleAI);
-						if (l_bufferItem.m_building == l_queuedItem.m_building) {
-							continue;
+							m_BuildingsQueuedToVehicle.Remove(l_queuedItem.m_building);
+							Log._Debug($"DispatchManager.DispatchThread: Added vehicle {l_queuedItem.m_vehicleId} to Vehicle building assigment");
+							m_VehicleToBuildingAssignment[l_queuedItem.m_vehicleId] = l_queuedItem;
+							Log._Debug("DispatchManager.DispatchThread: Dispatching for queued entry");
+							DispatchVehicle(l_queuedItem.m_vehicleId, ref l_vehManager.m_vehicles.m_buffer[l_queuedItem.m_vehicleId], l_queuedItem.m_building, l_bufferItem.m_vehicleAI);
+							if (l_bufferItem.m_building == l_queuedItem.m_building) {
+								continue;
+							}
+							// We still need to handle this building. This vehicle has been re-queued
+							l_thisRequestVehicleAlreadyDispatched = true;
+							Log._Debug($"DispatchManager.DispatchThread: Trying to find alternate vehicle for building {l_bufferItem.m_building}");
 						}
-						// We still need to handle this building. This vehicle has been re-queued
-						l_thisRequestVehicleAlreadyDispatched = true;
-						Log._Debug($"DispatchManager.DispatchThread: Trying to find alternate vehicle for building {l_bufferItem.m_building}");
-					}
-					if (l_defaultDispatch && l_buildingProblematicLevel < 2) {
-						// If building had a problematic level of 2, we let the default dispatcher or unused vehicle handler take it.
-						// This check must be done after the queued items for this vehicle, since the queued vehicle gets called back here with a different building and we
-						// intercept it above
-						if (m_BuildingsQueuedToVehicle.ContainsKey(l_bufferItem.m_building)) {
-							Log._Debug($"DispatchManager.DispatchThread: Building {l_bufferItem.m_building} Already in queue for another vehicle.");
-							AddVehicleToUnusedList(l_bufferItem.m_vehicleId);
-							continue;
-						}
-						if (m_BuildingsToVehicleAssignment.ContainsKey(l_bufferItem.m_building)) {
-							ushort l_vehicle = m_BuildingsToVehicleAssignment[l_bufferItem.m_building];
-							Log._Debug($"DispatchManager.DispatchThread: Building {l_bufferItem.m_building} Already has vehicle {l_vehicle} on the way");
-							if (l_vehicle != l_bufferItem.m_vehicleId) {
+						if (l_defaultDispatch && l_buildingProblematicLevel < 2) {
+							// If building had a problematic level of 2, we let the default dispatcher or unused vehicle handler take it.
+							// This check must be done after the queued items for this vehicle, since the queued vehicle gets called back here with a different building and we
+							// intercept it above
+							if (m_BuildingsQueuedToVehicle.ContainsKey(l_bufferItem.m_building)) {
+								Log._Debug($"DispatchManager.DispatchThread: Building {l_bufferItem.m_building} Already in queue for another vehicle.");
 								AddVehicleToUnusedList(l_bufferItem.m_vehicleId);
+								continue;
 							}
-							continue;
-						}
-						if (!l_thisRequestVehicleAlreadyDispatched && !CheckVehicleReadyToDispatch(l_bufferItem.m_vehicleId)) {
-							// Can't do anything with a vehicle not created.
-							Log._Debug($"DispatchManager.DispatchThread: Adding building {l_bufferItem.m_building} to unhandled queue.");
-							m_unhandledBuildingRequests.Add(l_bufferItem);
-							continue;
-						}
-						
-						// Look at other en-route vehicles to see if they will go past
+							if (m_BuildingsToVehicleAssignment.ContainsKey(l_bufferItem.m_building)) {
+								ushort l_vehicle = m_BuildingsToVehicleAssignment[l_bufferItem.m_building];
+								Log._Debug($"DispatchManager.DispatchThread: Building {l_bufferItem.m_building} Already has vehicle {l_vehicle} on the way");
+								if (l_vehicle != l_bufferItem.m_vehicleId) {
+									AddVehicleToUnusedList(l_bufferItem.m_vehicleId);
+								}
+								continue;
+							}
+							if (!l_thisRequestVehicleAlreadyDispatched && !CheckVehicleReadyToDispatch(l_bufferItem.m_vehicleId)) {
+								// Can't do anything with a vehicle not created.
+								Log._Debug($"DispatchManager.DispatchThread: Adding building {l_bufferItem.m_building} to unhandled queue.");
+								m_unhandledBuildingRequests.Add(l_bufferItem);
+								continue;
+							}
 
-						ushort l_buildingSegment = FindBuildingRoad(l_bufferItem.m_building);
-						if (l_buildingSegment != 0) {
-							NetSegment l_nsBuildingSegment = Singleton<NetManager>.instance.m_segments.m_buffer[l_buildingSegment];
-							Log._Debug($"DispatchManager.DispatchThread: Building {l_bufferItem.m_building} has parent node {l_buildingSegment}");
-							Vector3 l_buildingLanePos;
-							uint l_buildingLaneID;
-							int l_buildingLaneIndex;
-							float l_buildingLaneOffset;
-							if (l_nsBuildingSegment.GetClosestLanePosition(l_building.m_position, NetInfo.LaneType.Vehicle, VehicleInfo.VehicleType.Car, out l_buildingLanePos, out l_buildingLaneID, out l_buildingLaneIndex, out l_buildingLaneOffset)) {
-								foreach (KeyValuePair<ushort, DispatchBufferItem> l_thisVehicle in m_VehicleToBuildingAssignment) {
-									ushort uCurrentDestinationBuilding = m_VehicleToBuildingAssignment[l_thisVehicle.Value.m_vehicleId].m_building;
-									Building l_currentBuilding = Singleton<BuildingManager>.instance.m_buildings.m_buffer[uCurrentDestinationBuilding];
-									// Don't check ourselves
-									if (l_thisVehicle.Value.m_vehicleId == l_bufferItem.m_vehicleId) {
-										continue;
-									}
-									if (l_thisVehicle.Value.m_vehicleId != l_thisVehicle.Key) {
-										Log.Error($"DispatchManager.DispatchThread: Key ({l_thisVehicle.Key})/Entry ({l_thisVehicle.Value.m_vehicleId}) mismatch on vehicle ID");
-										continue;
-									}
-									if (!CheckVehicleReadyToDispatch(l_thisVehicle.Key)) {
-										continue;
-									}
-									int l_currentBuildingProblematicLevel = 0;
-									if ((l_currentBuilding.m_problems & Notification.Problem.Death) != Notification.Problem.None) {
-										if ((l_currentBuilding.m_problems & Notification.Problem.MajorProblem) != Notification.Problem.None) {
-											l_currentBuildingProblematicLevel = 2;
-										} else {
-											l_currentBuildingProblematicLevel = 1;
+							// Look at other en-route vehicles to see if they will go past
+
+							ushort l_buildingSegment = FindBuildingRoad(l_bufferItem.m_building);
+							if (l_buildingSegment != 0) {
+								NetSegment l_nsBuildingSegment = Singleton<NetManager>.instance.m_segments.m_buffer[l_buildingSegment];
+								Log._Debug($"DispatchManager.DispatchThread: Building {l_bufferItem.m_building} has parent node {l_buildingSegment}");
+								Vector3 l_buildingLanePos;
+								uint l_buildingLaneID;
+								int l_buildingLaneIndex;
+								float l_buildingLaneOffset;
+								if (l_nsBuildingSegment.GetClosestLanePosition(l_building.m_position, NetInfo.LaneType.Vehicle, VehicleInfo.VehicleType.Car, out l_buildingLanePos, out l_buildingLaneID, out l_buildingLaneIndex, out l_buildingLaneOffset)) {
+									foreach (KeyValuePair<ushort, DispatchBufferItem> l_thisVehicle in m_VehicleToBuildingAssignment) {
+										ushort uCurrentDestinationBuilding = m_VehicleToBuildingAssignment[l_thisVehicle.Value.m_vehicleId].m_building;
+										Building l_currentBuilding = Singleton<BuildingManager>.instance.m_buildings.m_buffer[uCurrentDestinationBuilding];
+										// Don't check ourselves
+										if (l_thisVehicle.Value.m_vehicleId == l_bufferItem.m_vehicleId) {
+											continue;
 										}
-									}
-									if (l_currentBuildingProblematicLevel == 2) {
-										// Don't slow down vehicle on way to high problem building
-										continue;
-									}
+										if (l_thisVehicle.Value.m_vehicleId != l_thisVehicle.Key) {
+											Log.Error($"DispatchManager.DispatchThread: Key ({l_thisVehicle.Key})/Entry ({l_thisVehicle.Value.m_vehicleId}) mismatch on vehicle ID");
+											continue;
+										}
+										if (!CheckVehicleReadyToDispatch(l_thisVehicle.Key)) {
+											continue;
+										}
+										int l_currentBuildingProblematicLevel = 0;
+										if ((l_currentBuilding.m_problems & Notification.Problem.Death) != Notification.Problem.None) {
+											if ((l_currentBuilding.m_problems & Notification.Problem.MajorProblem) != Notification.Problem.None) {
+												l_currentBuildingProblematicLevel = 2;
+											} else {
+												l_currentBuildingProblematicLevel = 1;
+											}
+										}
+										if (l_currentBuildingProblematicLevel == 2) {
+											// Don't slow down vehicle on way to high problem building
+											continue;
+										}
 
-									ref Vehicle l_vehicle = ref l_vehManager.m_vehicles.m_buffer[l_thisVehicle.Value.m_vehicleId];
-									uint l_searchPathId = l_vehicle.m_path;
-									if (l_searchPathId == 0) {
-										continue;
-									}
-									bool l_fPathDebug = false;
-									PathUnit[] paths = Singleton<PathManager>.instance.m_pathUnits.m_buffer;
-									bool l_abortSearch = false;
-									int l_pathPosStart = (l_vehicle.m_pathPositionIndex != 255) ? (l_vehicle.m_pathPositionIndex >> 1) : 0;
-									int l_pathPosTotalStart = l_pathPosStart;
-									int l_pathPosTotal = l_pathPosStart - 1;
-									while (l_searchPathId != 0) {
-										for (int i = l_pathPosStart; i < paths[l_searchPathId].m_positionCount; i++) {
-											l_pathPosTotal++;
-											PathUnit.Position p = paths[l_searchPathId].GetPosition(i);
-											if (l_fPathDebug) {
-												Log._Debug($"DispatchManager.DispatchThread: PATHDEBUG: Checking position {i} {p.m_segment}");
-											}
-											if (p.m_segment != l_buildingSegment) {
-												continue;
-											}
-											// We found one!
-											// Need to check for space and queue it up (Not loose vehicle original destination)
-											HearseAI l_AI;
-											try {
-												l_AI = (HearseAI)l_vehicle.Info.m_vehicleAI;
-											} catch (System.InvalidCastException ex) {
-												Log.Error($"DispatchManager.DispatchThread: Vehicle {l_thisVehicle.Value.m_vehicleId} is not a hearse! {l_vehicle.Info.m_vehicleAI}");
-												l_abortSearch = true;
-												break;
-											}
-											// Check if the path is on the right side
-											if (l_nsBuildingSegment.Info.m_lanes[l_buildingLaneIndex].m_direction != l_nsBuildingSegment.Info.m_lanes[p.m_lane].m_direction) {
-												if (l_nsBuildingSegment.Info.m_canCrossLanes) {
-													Log._Debug($"DispatchManager.DispatchThread: Segment {l_buildingSegment} direction different, but can cross lanes. Continuing.");
-												} else {
-													if (l_fPathDebug) {
-														Log._Debug($"DispatchManager.DispatchThread: PATHDEBUG: Going past, in wrong direction");
-													}
-													l_abortSearch = true;
-													break;
-												}
-											}
-											Vehicle.Frame lastFrameData = l_vehicle.GetLastFrameData();
-											if (l_pathPosTotal == l_pathPosTotalStart) {
-												// Check vehicle hasn't just passed building -- Must be on same segment
-												// If it just passed, but is on the next segment, the test above would've skipped (segment path counter)
-												Vector3 l_roadDirection;
-												if (l_nsBuildingSegment.Info.m_lanes[p.m_lane].m_direction == NetInfo.Direction.Forward) {
-													l_roadDirection = l_nsBuildingSegment.m_startDirection;
-												} else {
-													l_roadDirection = l_nsBuildingSegment.m_endDirection;
-												}
-												Vector3 l_buildingToVehicleDirection = l_buildingLanePos - l_vehicle.GetLastFramePosition();
-												l_buildingToVehicleDirection /= l_buildingToVehicleDirection.magnitude;
-												float l_dotDir = Vector3.Dot(l_buildingToVehicleDirection, l_roadDirection);
-												Log._Debug($"DispatchManager.DispatchThread: Vehicle {l_thisVehicle.Value.m_vehicleId} direction: {l_nsBuildingSegment.Info.m_lanes[p.m_lane].m_direction} segment start dir: {l_nsBuildingSegment.m_startDirection} segment end dir: {l_nsBuildingSegment.m_endDirection} buildingLanePos: {l_buildingLanePos} Vehicle pos: {lastFrameData.m_position} roadDot: {l_roadDirection} l_vehicleToBuildingDirection: {l_buildingToVehicleDirection} l_dotDir: {l_dotDir}");
-												if (l_dotDir < 0.0f) {
-													// Vehicle just passed
-													Log._Debug($"DispatchManager.DispatchThread: Vehicle {l_thisVehicle.Value.m_vehicleId} just passed building {l_bufferItem.m_building} on same segment. Continuing search.");
-													l_abortSearch = true;
-													break;
-												}
-											}
-											// Check if vehicle is too close (may be going to fast to stop at this point
-
-											float sqrVelocity = lastFrameData.m_velocity.sqrMagnitude;
-											float breakingDist = 0.5f * sqrVelocity / l_AI.m_info.m_braking;
-											float l_distanceToBuilding = Vector3.Distance(l_vehicle.GetLastFramePosition(), l_buildingLanePos);
-											if (l_distanceToBuilding < breakingDist) {
-												Log._Debug($"DispatchManager.DispatchThread: Vehicle {l_thisVehicle.Value.m_vehicleId} is too close to building {l_bufferItem.m_building}. Continuing search.");
-												l_abortSearch = true;
-												break;
-											}
-											// Check how many queue requests this vehicle may have
-											int l_queueAmount = 0;
-											if (m_VehiclePickupQueue.ContainsKey(l_thisVehicle.Value.m_vehicleId)) {
-												foreach (DispatchBufferItem l_queueCheck in m_VehiclePickupQueue[l_thisVehicle.Value.m_vehicleId]) {
-													l_queueAmount += l_queueCheck.m_amount;
-												}
-											}
-											if (l_vehicle.m_transferSize + m_VehicleToBuildingAssignment[l_thisVehicle.Value.m_vehicleId].m_amount + l_bufferItem.m_amount + l_queueAmount > l_AI.m_corpseCapacity) {
+										ref Vehicle l_vehicle = ref l_vehManager.m_vehicles.m_buffer[l_thisVehicle.Value.m_vehicleId];
+										uint l_searchPathId = l_vehicle.m_path;
+										if (l_searchPathId == 0) {
+											continue;
+										}
+										bool l_fPathDebug = false;
+										PathUnit[] paths = Singleton<PathManager>.instance.m_pathUnits.m_buffer;
+										bool l_abortSearch = false;
+										int l_pathPosStart = (l_vehicle.m_pathPositionIndex != 255) ? (l_vehicle.m_pathPositionIndex >> 1) : 0;
+										int l_pathPosTotalStart = l_pathPosStart;
+										int l_pathPosTotal = l_pathPosStart - 1;
+										while (l_searchPathId != 0) {
+											for (int i = l_pathPosStart; i < paths[l_searchPathId].m_positionCount; i++) {
+												l_pathPosTotal++;
+												PathUnit.Position p = paths[l_searchPathId].GetPosition(i);
 												if (l_fPathDebug) {
-													Log._Debug($"DispatchManager.DispatchThread: PATHDEBUG: Not enough capacity");
+													Log._Debug($"DispatchManager.DispatchThread: PATHDEBUG: Checking position {i} {p.m_segment}");
 												}
-												l_abortSearch = true;
-												break;
-											}
-											// Need to check if actually after our current destination
-											if (i == paths[l_searchPathId].m_positionCount - 1 && paths[l_searchPathId].m_nextPathUnit == 0) {
-												// Last segment
-												// Check vehicle hasn't just passed building -- Must be on same segment
-												// If it just passed, but is on the next segment, the test above would've skipped (segment path counter)
-												Vector3 l_roadDirection;
-												Vector3 l_currentBuildingLanePos;
-												uint l_currentBuildingLaneID;
-												int l_currentBuildingLaneIndex;
-												float l_currentBuildingLaneOffset;
-												if (l_nsBuildingSegment.GetClosestLanePosition(l_currentBuilding.m_position, NetInfo.LaneType.Vehicle, VehicleInfo.VehicleType.Car, out l_currentBuildingLanePos, out l_currentBuildingLaneID, out l_currentBuildingLaneIndex, out l_currentBuildingLaneOffset)) {
+												if (p.m_segment != l_buildingSegment) {
+													continue;
+												}
+												// We found one!
+												// Need to check for space and queue it up (Not loose vehicle original destination)
+												HearseAI l_AI;
+												try {
+													l_AI = (HearseAI)l_vehicle.Info.m_vehicleAI;
+												} catch (System.InvalidCastException ex) {
+													Log.Error($"DispatchManager.DispatchThread: Vehicle {l_thisVehicle.Value.m_vehicleId} is not a hearse! {l_vehicle.Info.m_vehicleAI}");
+													l_abortSearch = true;
+													break;
+												}
+												// Check if the path is on the right side
+												if (l_nsBuildingSegment.Info.m_lanes[l_buildingLaneIndex].m_direction != l_nsBuildingSegment.Info.m_lanes[p.m_lane].m_direction) {
+													if (l_nsBuildingSegment.Info.m_canCrossLanes) {
+														Log._Debug($"DispatchManager.DispatchThread: Segment {l_buildingSegment} direction different, but can cross lanes. Continuing.");
+													} else {
+														if (l_fPathDebug) {
+															Log._Debug($"DispatchManager.DispatchThread: PATHDEBUG: Going past, in wrong direction");
+														}
+														l_abortSearch = true;
+														break;
+													}
+												}
+												Vehicle.Frame lastFrameData = l_vehicle.GetLastFrameData();
+												if (l_pathPosTotal == l_pathPosTotalStart) {
+													// Check vehicle hasn't just passed building -- Must be on same segment
+													// If it just passed, but is on the next segment, the test above would've skipped (segment path counter)
+													Vector3 l_roadDirection;
 													if (l_nsBuildingSegment.Info.m_lanes[p.m_lane].m_direction == NetInfo.Direction.Forward) {
 														l_roadDirection = l_nsBuildingSegment.m_startDirection;
 													} else {
 														l_roadDirection = l_nsBuildingSegment.m_endDirection;
 													}
-													Vector3 l_currentEndPointToNewEndPointDirection = l_currentBuildingLanePos - l_buildingLanePos;
-													l_currentEndPointToNewEndPointDirection /= l_currentEndPointToNewEndPointDirection.magnitude;
-													float l_dotDir = Vector3.Dot(l_currentEndPointToNewEndPointDirection, l_roadDirection);
-													Log._Debug($"DispatchManager.DispatchThread: Current Building {uCurrentDestinationBuilding} segment direction: {l_nsBuildingSegment.Info.m_lanes[p.m_lane].m_direction} segment start dir: {l_nsBuildingSegment.m_startDirection} segment end dir: {l_nsBuildingSegment.m_endDirection} Current buildingLanePos: {l_currentBuildingLanePos} New BuildingLanepos: {l_buildingLanePos} roadDot: {l_roadDirection} l_currentEndPointToNewEndPointDirection: {l_currentEndPointToNewEndPointDirection} l_dotDir: {l_dotDir}");
+													Vector3 l_buildingToVehicleDirection = l_buildingLanePos - l_vehicle.GetLastFramePosition();
+													l_buildingToVehicleDirection /= l_buildingToVehicleDirection.magnitude;
+													float l_dotDir = Vector3.Dot(l_buildingToVehicleDirection, l_roadDirection);
+													Log._Debug($"DispatchManager.DispatchThread: Vehicle {l_thisVehicle.Value.m_vehicleId} direction: {l_nsBuildingSegment.Info.m_lanes[p.m_lane].m_direction} segment start dir: {l_nsBuildingSegment.m_startDirection} segment end dir: {l_nsBuildingSegment.m_endDirection} buildingLanePos: {l_buildingLanePos} Vehicle pos: {lastFrameData.m_position} roadDot: {l_roadDirection} l_vehicleToBuildingDirection: {l_buildingToVehicleDirection} l_dotDir: {l_dotDir}");
 													if (l_dotDir < 0.0f) {
-														// new building is past current one
-														Log._Debug($"DispatchManager.DispatchThread: Building {l_bufferItem.m_building} is after current end building {uCurrentDestinationBuilding}");
+														// Vehicle just passed
+														Log._Debug($"DispatchManager.DispatchThread: Vehicle {l_thisVehicle.Value.m_vehicleId} just passed building {l_bufferItem.m_building} on same segment. Continuing search.");
 														l_abortSearch = true;
 														break;
 													}
-												} else {
-													Log._Debug($"DispatchManager.DispatchThread: Can't get existing destination building {uCurrentDestinationBuilding} road location. Not risking this one.");
+												}
+												// Check if vehicle is too close (may be going to fast to stop at this point
+
+												float sqrVelocity = lastFrameData.m_velocity.sqrMagnitude;
+												float breakingDist = 0.5f * sqrVelocity / l_AI.m_info.m_braking;
+												float l_distanceToBuilding = Vector3.Distance(l_vehicle.GetLastFramePosition(), l_buildingLanePos);
+												if (l_distanceToBuilding < breakingDist) {
+													Log._Debug($"DispatchManager.DispatchThread: Vehicle {l_thisVehicle.Value.m_vehicleId} is too close to building {l_bufferItem.m_building}. Continuing search.");
 													l_abortSearch = true;
 													break;
 												}
-											}
+												// Check how many queue requests this vehicle may have
+												int l_queueAmount = 0;
+												if (m_VehiclePickupQueue.ContainsKey(l_thisVehicle.Value.m_vehicleId)) {
+													foreach (DispatchBufferItem l_queueCheck in m_VehiclePickupQueue[l_thisVehicle.Value.m_vehicleId]) {
+														l_queueAmount += l_queueCheck.m_amount;
+													}
+												}
+												if (l_vehicle.m_transferSize + m_VehicleToBuildingAssignment[l_thisVehicle.Value.m_vehicleId].m_amount + l_bufferItem.m_amount + l_queueAmount > l_AI.m_corpseCapacity) {
+													if (l_fPathDebug) {
+														Log._Debug($"DispatchManager.DispatchThread: PATHDEBUG: Not enough capacity");
+													}
+													l_abortSearch = true;
+													break;
+												}
+												// Need to check if actually after our current destination
+												if (i == paths[l_searchPathId].m_positionCount - 1 && paths[l_searchPathId].m_nextPathUnit == 0) {
+													// Last segment
+													// Check vehicle hasn't just passed building -- Must be on same segment
+													// If it just passed, but is on the next segment, the test above would've skipped (segment path counter)
+													Vector3 l_roadDirection;
+													Vector3 l_currentBuildingLanePos;
+													uint l_currentBuildingLaneID;
+													int l_currentBuildingLaneIndex;
+													float l_currentBuildingLaneOffset;
+													if (l_nsBuildingSegment.GetClosestLanePosition(l_currentBuilding.m_position, NetInfo.LaneType.Vehicle, VehicleInfo.VehicleType.Car, out l_currentBuildingLanePos, out l_currentBuildingLaneID, out l_currentBuildingLaneIndex, out l_currentBuildingLaneOffset)) {
+														if (l_nsBuildingSegment.Info.m_lanes[p.m_lane].m_direction == NetInfo.Direction.Forward) {
+															l_roadDirection = l_nsBuildingSegment.m_startDirection;
+														} else {
+															l_roadDirection = l_nsBuildingSegment.m_endDirection;
+														}
+														Vector3 l_currentEndPointToNewEndPointDirection = l_currentBuildingLanePos - l_buildingLanePos;
+														l_currentEndPointToNewEndPointDirection /= l_currentEndPointToNewEndPointDirection.magnitude;
+														float l_dotDir = Vector3.Dot(l_currentEndPointToNewEndPointDirection, l_roadDirection);
+														Log._Debug($"DispatchManager.DispatchThread: Current Building {uCurrentDestinationBuilding} segment direction: {l_nsBuildingSegment.Info.m_lanes[p.m_lane].m_direction} segment start dir: {l_nsBuildingSegment.m_startDirection} segment end dir: {l_nsBuildingSegment.m_endDirection} Current buildingLanePos: {l_currentBuildingLanePos} New BuildingLanepos: {l_buildingLanePos} roadDot: {l_roadDirection} l_currentEndPointToNewEndPointDirection: {l_currentEndPointToNewEndPointDirection} l_dotDir: {l_dotDir}");
+														if (l_dotDir < 0.0f) {
+															// new building is past current one
+															Log._Debug($"DispatchManager.DispatchThread: Building {l_bufferItem.m_building} is after current end building {uCurrentDestinationBuilding}");
+															l_abortSearch = true;
+															break;
+														}
+													} else {
+														Log._Debug($"DispatchManager.DispatchThread: Can't get existing destination building {uCurrentDestinationBuilding} road location. Not risking this one.");
+														l_abortSearch = true;
+														break;
+													}
+												}
 
-											Log._Debug($"DispatchManager.DispatchThread: Building {l_bufferItem.m_building} is on path of vehicle {l_thisVehicle.Value.m_vehicleId} and has enough space");
-											LinkedList<DispatchBufferItem> l_thisVehicleQueue;
-											// Check if this vehicle has a pick up queue, if not, create one
-											if (!m_VehiclePickupQueue.ContainsKey(l_thisVehicle.Value.m_vehicleId)) {
-												l_thisVehicleQueue = new LinkedList<DispatchBufferItem>();
-												m_VehiclePickupQueue.Add(l_thisVehicle.Value.m_vehicleId, l_thisVehicleQueue);
-											} else {
-												l_thisVehicleQueue = m_VehiclePickupQueue[l_thisVehicle.Value.m_vehicleId];
-											}
-											// Move this vehicle's current pickup destination into the queue, and take the new one.
-											// TODO: Add the vehicle in this request to a free queue
-											Log._Debug($"DispatchManager.DispatchThread: Putting vehicle {l_thisVehicle.Value.m_vehicleId} current destination of {m_VehicleToBuildingAssignment[l_thisVehicle.Value.m_vehicleId].m_building} into queue. Vehicle now has {l_thisVehicleQueue.Count() + 1} building in queue");
-											l_thisVehicleQueue.AddFirst(m_VehicleToBuildingAssignment[l_thisVehicle.Value.m_vehicleId]);
-											m_BuildingsQueuedToVehicle.Add(m_VehicleToBuildingAssignment[l_thisVehicle.Value.m_vehicleId].m_building, l_thisVehicle.Value.m_vehicleId);
-											m_BuildingsToVehicleAssignment.Remove(m_VehicleToBuildingAssignment[l_thisVehicle.Value.m_vehicleId].m_building);
+												Log._Debug($"DispatchManager.DispatchThread: Building {l_bufferItem.m_building} is on path of vehicle {l_thisVehicle.Value.m_vehicleId} and has enough space");
+												LinkedList<DispatchBufferItem> l_thisVehicleQueue;
+												// Check if this vehicle has a pick up queue, if not, create one
+												if (!m_VehiclePickupQueue.ContainsKey(l_thisVehicle.Value.m_vehicleId)) {
+													l_thisVehicleQueue = new LinkedList<DispatchBufferItem>();
+													m_VehiclePickupQueue.Add(l_thisVehicle.Value.m_vehicleId, l_thisVehicleQueue);
+												} else {
+													l_thisVehicleQueue = m_VehiclePickupQueue[l_thisVehicle.Value.m_vehicleId];
+												}
+												// Move this vehicle's current pickup destination into the queue, and take the new one.
+												// TODO: Add the vehicle in this request to a free queue
+												Log._Debug($"DispatchManager.DispatchThread: Putting vehicle {l_thisVehicle.Value.m_vehicleId} current destination of {m_VehicleToBuildingAssignment[l_thisVehicle.Value.m_vehicleId].m_building} into queue. Vehicle now has {l_thisVehicleQueue.Count() + 1} building in queue");
+												l_thisVehicleQueue.AddFirst(m_VehicleToBuildingAssignment[l_thisVehicle.Value.m_vehicleId]);
+												if (m_BuildingsQueuedToVehicle.ContainsKey(m_VehicleToBuildingAssignment[l_thisVehicle.Value.m_vehicleId].m_building)) {
+													m_BuildingsQueuedToVehicle.Remove(m_VehicleToBuildingAssignment[l_thisVehicle.Value.m_vehicleId].m_building);
+												}
+												m_BuildingsQueuedToVehicle.Add(m_VehicleToBuildingAssignment[l_thisVehicle.Value.m_vehicleId].m_building, l_thisVehicle.Value.m_vehicleId);
+												if (m_BuildingsToVehicleAssignment.ContainsKey(l_thisVehicle.Value.m_vehicleId)) {
+													m_BuildingsToVehicleAssignment.Remove(l_thisVehicle.Value.m_vehicleId);
+												}
+												m_BuildingsToVehicleAssignment.Remove(m_VehicleToBuildingAssignment[l_thisVehicle.Value.m_vehicleId].m_building);
 
-											Log._Debug($"DispatchManager.DispatchThread: Updating Vehicle {l_thisVehicle.Value.m_vehicleId} -> Building with new building {l_bufferItem.m_building}");
-											m_VehicleToBuildingAssignment.Remove(l_thisVehicle.Value.m_vehicleId);
-											l_bufferItem.m_vehicleId = l_thisVehicle.Value.m_vehicleId;
-											m_VehicleToBuildingAssignment[l_thisVehicle.Value.m_vehicleId] = l_bufferItem;
-											if (!l_thisRequestVehicleAlreadyDispatched) {
-												AddVehicleToUnusedList(l_bufferItem.m_vehicleId);
+												Log._Debug($"DispatchManager.DispatchThread: Updating Vehicle {l_thisVehicle.Value.m_vehicleId} -> Building with new building {l_bufferItem.m_building}");
+												m_VehicleToBuildingAssignment.Remove(l_thisVehicle.Value.m_vehicleId);
+												l_bufferItem.m_vehicleId = l_thisVehicle.Value.m_vehicleId;
+												m_VehicleToBuildingAssignment[l_thisVehicle.Value.m_vehicleId] = l_bufferItem;
+												if (!l_thisRequestVehicleAlreadyDispatched) {
+													AddVehicleToUnusedList(l_bufferItem.m_vehicleId);
+												}
+												if (m_VehiclesNotInUse.Contains(l_thisVehicle.Value.m_vehicleId)) {
+													m_VehiclesNotInUse.Remove(l_thisVehicle.Value.m_vehicleId);
+												}
+												Log._Debug("DispatchManager.DispatchThread: Dispatching for building on path of other vehicle");
+												DispatchVehicle(l_thisVehicle.Value.m_vehicleId, ref l_vehManager.m_vehicles.m_buffer[l_thisVehicle.Value.m_vehicleId], l_bufferItem.m_building, l_bufferItem.m_vehicleAI);
+												l_defaultDispatch = false;
+												l_abortSearch = true;
+												break;
 											}
-											if (m_VehiclesNotInUse.Contains(l_thisVehicle.Value.m_vehicleId)) {
-												m_VehiclesNotInUse.Remove(l_thisVehicle.Value.m_vehicleId);
+											if (l_abortSearch) {
+												break;
 											}
-											Log._Debug("DispatchManager.DispatchThread: Dispatching for building on path of other vehicle");
-											DispatchVehicle(l_thisVehicle.Value.m_vehicleId, ref l_vehManager.m_vehicles.m_buffer[l_thisVehicle.Value.m_vehicleId], l_bufferItem.m_building, l_bufferItem.m_vehicleAI);
-											l_defaultDispatch = false;
-											l_abortSearch = true;
+											l_pathPosStart = 0;
+											l_searchPathId = paths[l_searchPathId].m_nextPathUnit;
+										}
+										if (!l_defaultDispatch) {
 											break;
 										}
-										if (l_abortSearch) {
-											break;
-										}
-										l_pathPosStart = 0;
-										l_searchPathId = paths[l_searchPathId].m_nextPathUnit;
-									}
-									if (!l_defaultDispatch) {
-										break;
 									}
 								}
 							}
 						}
-					}
-					if (l_defaultDispatch && !l_thisRequestVehicleAlreadyDispatched) {
-						// Check to see if there is already a vehicle en-route
-						if (m_BuildingsToVehicleAssignment.ContainsKey(l_bufferItem.m_building)) {
-							ushort l_assignedVehicle = m_BuildingsToVehicleAssignment[l_bufferItem.m_building];
-							if (m_VehicleToBuildingAssignment.ContainsKey(l_assignedVehicle)) {
-								if (m_VehicleToBuildingAssignment[l_assignedVehicle].m_building == l_bufferItem.m_building) {
-									Log._Debug($"DispatchManager.DispatchThread: Keeping vehicle {l_assignedVehicle} assigned to high problem building {l_bufferItem.m_building}");
-									continue;
+						if (l_defaultDispatch && !l_thisRequestVehicleAlreadyDispatched) {
+							// Check to see if there is already a vehicle en-route
+							if (m_BuildingsToVehicleAssignment.ContainsKey(l_bufferItem.m_building)) {
+								ushort l_assignedVehicle = m_BuildingsToVehicleAssignment[l_bufferItem.m_building];
+								if (m_VehicleToBuildingAssignment.ContainsKey(l_assignedVehicle)) {
+									if (m_VehicleToBuildingAssignment[l_assignedVehicle].m_building == l_bufferItem.m_building) {
+										Log._Debug($"DispatchManager.DispatchThread: Keeping vehicle {l_assignedVehicle} assigned to high problem building {l_bufferItem.m_building}");
+										continue;
+									}
+								}
+							}
+							// Check to see if we have a closer one in our backlog.
+							PruneUnusedVehicleList();
+							if (l_buildingProblematicLevel == 2) {
+								// Dispatch from closest vehicle or default requested
+								Log._Debug($"DispatchManager.DispatchThread: Building {l_bufferItem.m_building} has high problem. Looking for nearest vehicle or default");
+								RemoveBuildingFromOtherVehiclesQueue(l_bufferItem.m_building);
+							}
+							if (m_VehiclesNotInUse.Count > 0) {
+								float l_distance;
+								ushort l_ClosestVehicle = FindClosestUnusedVehicle(l_building.m_position, out l_distance);
+								Vector3 l_assignedVehiclePos = l_vehManager.m_vehicles.m_buffer[l_bufferItem.m_vehicleId].GetLastFramePosition();
+								Log._Debug($"DispatchManager.DispatchThread: Assigned vehicle pos {l_assignedVehiclePos}");
+								Vector3 l_assignedVehicleDistance = l_assignedVehiclePos - l_building.m_position;
+								if (l_ClosestVehicle != 0 && l_assignedVehicleDistance.sqrMagnitude > l_distance) {
+									Log._Debug($"DispatchManager.DispatchThread: Choosing unused vehicle {l_ClosestVehicle} over {l_bufferItem.m_vehicleId} as it's closer.");
+									m_VehicleToBuildingAssignment.Remove(l_bufferItem.m_vehicleId);
+									AddVehicleToUnusedList(l_bufferItem.m_vehicleId);
+									m_VehiclesNotInUse.Remove(l_ClosestVehicle);
+									Log._Debug("DispatchManager.DispatchThread: Dispatching for building - unused vehicle closer");
+									DispatchVehicle(l_ClosestVehicle, ref l_vehManager.m_vehicles.m_buffer[l_ClosestVehicle], l_bufferItem.m_building, l_bufferItem.m_vehicleAI);
+									l_bufferItem.m_vehicleId = l_ClosestVehicle;
+									m_VehicleToBuildingAssignment[l_ClosestVehicle] = l_bufferItem;
+									l_defaultDispatch = false;
 								}
 							}
 						}
-						// Check to see if we have a closer one in our backlog.
-						PruneUnusedVehicleList();
-						if (l_buildingProblematicLevel == 2) {
-							// Dispatch from closest vehicle or default requested
-							Log._Debug($"DispatchManager.DispatchThread: Building {l_bufferItem.m_building} has high problem. Looking for nearest vehicle or default");
-							RemoveBuildingFromOtherVehiclesQueue(l_bufferItem.m_building);
-						}
-						if (m_VehiclesNotInUse.Count > 0) {
-							float l_distance;
-							ushort l_ClosestVehicle = FindClosestUnusedVehicle(l_building.m_position, out l_distance);
-							Vector3 l_assignedVehiclePos = l_vehManager.m_vehicles.m_buffer[l_bufferItem.m_vehicleId].GetLastFramePosition();
-							Log._Debug($"DispatchManager.DispatchThread: Assigned vehicle pos {l_assignedVehiclePos}");
-							Vector3 l_assignedVehicleDistance = l_assignedVehiclePos - l_building.m_position;
-							if (l_ClosestVehicle != 0 && l_assignedVehicleDistance.sqrMagnitude > l_distance) {
-								Log._Debug($"DispatchManager.DispatchThread: Choosing unused vehicle {l_ClosestVehicle} over {l_bufferItem.m_vehicleId} as it's closer.");
-								m_VehicleToBuildingAssignment.Remove(l_bufferItem.m_vehicleId);
-								AddVehicleToUnusedList(l_bufferItem.m_vehicleId);
-								m_VehiclesNotInUse.Remove(l_ClosestVehicle);
-								Log._Debug("DispatchManager.DispatchThread: Dispatching for building - unused vehicle closer");
-								DispatchVehicle(l_ClosestVehicle, ref l_vehManager.m_vehicles.m_buffer[l_ClosestVehicle], l_bufferItem.m_building, l_bufferItem.m_vehicleAI);
-								l_bufferItem.m_vehicleId = l_ClosestVehicle;
-								m_VehicleToBuildingAssignment[l_ClosestVehicle] = l_bufferItem;
-								l_defaultDispatch = false;
+						if (l_defaultDispatch && !l_thisRequestVehicleAlreadyDispatched) {
+							if (m_VehiclesNotInUse.Contains(l_bufferItem.m_vehicleId)) {
+								m_VehiclesNotInUse.Remove(l_bufferItem.m_vehicleId);
 							}
+							m_VehicleToBuildingAssignment[l_bufferItem.m_vehicleId] = l_bufferItem;
+							Log._Debug("DispatchManager.DispatchThread: Dispatching for default");
+							DispatchVehicle(l_bufferItem.m_vehicleId, ref l_vehManager.m_vehicles.m_buffer[l_bufferItem.m_vehicleId], l_bufferItem.m_building, l_bufferItem.m_vehicleAI);
 						}
 					}
-					if (l_defaultDispatch && !l_thisRequestVehicleAlreadyDispatched) {
-						if (m_VehiclesNotInUse.Contains(l_bufferItem.m_vehicleId)) {
-							m_VehiclesNotInUse.Remove(l_bufferItem.m_vehicleId);
+					// For now, take the vehicles not in use and send them to any unhandled buildings.
+					// TODO: Choose vehicles closest
+					Log._Debug($"DispatchManager.DispatchThread: m_VehiclesNotInUse: {m_VehiclesNotInUse.Count()} m_unhandledBuildingRequests: {m_unhandledBuildingRequests.m_size}");
+					PruneUnusedVehicleList();
+					FastList<DispatchBufferItem> l_handledBuildingRequests = new FastList<DispatchBufferItem>();
+					foreach (DispatchBufferItem l_bufferItem in m_unhandledBuildingRequests) {
+						Building l_building = Singleton<BuildingManager>.instance.m_buildings.m_buffer[l_bufferItem.m_building];
+						if (m_VehiclesNotInUse.Count() == 0) {
+							break;
 						}
+						ushort l_selectedvehicle = FindClosestUnusedVehicle(l_building.m_position, out _);
+						l_handledBuildingRequests.Add(l_bufferItem);
+						m_BuildingsQueuedToVehicle.Remove(l_bufferItem.m_building);
+
+						m_VehiclesNotInUse.Remove(l_selectedvehicle);
+
+						l_bufferItem.m_vehicleId = l_selectedvehicle;
 						m_VehicleToBuildingAssignment[l_bufferItem.m_vehicleId] = l_bufferItem;
-						Log._Debug("DispatchManager.DispatchThread: Dispatching for default");
+						Log._Debug("DispatchManager.DispatchThread: Dispatching for unused vehicle");
 						DispatchVehicle(l_bufferItem.m_vehicleId, ref l_vehManager.m_vehicles.m_buffer[l_bufferItem.m_vehicleId], l_bufferItem.m_building, l_bufferItem.m_vehicleAI);
 					}
-				}
-				// For now, take the vehicles not in use and send them to any unhandled buildings.
-				// TODO: Choose vehicles closest
-				Log._Debug($"DispatchManager.DispatchThread: m_VehiclesNotInUse: {m_VehiclesNotInUse.Count()} m_unhandledBuildingRequests: {m_unhandledBuildingRequests.m_size}");
-				PruneUnusedVehicleList();
-				FastList<DispatchBufferItem> l_handledBuildingRequests = new FastList<DispatchBufferItem>();
-				foreach (DispatchBufferItem l_bufferItem in m_unhandledBuildingRequests) {
-					Building l_building = Singleton<BuildingManager>.instance.m_buildings.m_buffer[l_bufferItem.m_building];
-					if (m_VehiclesNotInUse.Count() == 0) {
-						break;
+					foreach (DispatchBufferItem l_buildingHandled in l_handledBuildingRequests) {
+						m_unhandledBuildingRequests.Remove(l_buildingHandled);
 					}
-					ushort l_selectedvehicle = FindClosestUnusedVehicle(l_building.m_position, out _);
-					l_handledBuildingRequests.Add(l_bufferItem);
-					m_BuildingsQueuedToVehicle.Remove(l_bufferItem.m_building);
-
-					m_VehiclesNotInUse.Remove(l_selectedvehicle);
-
-					l_bufferItem.m_vehicleId = l_selectedvehicle;
-					m_VehicleToBuildingAssignment[l_bufferItem.m_vehicleId] = l_bufferItem;
-					Log._Debug("DispatchManager.DispatchThread: Dispatching for unused vehicle");
-					DispatchVehicle(l_bufferItem.m_vehicleId, ref l_vehManager.m_vehicles.m_buffer[l_bufferItem.m_vehicleId], l_bufferItem.m_building, l_bufferItem.m_vehicleAI);
+					/*
+					foreach (ushort l_vehicleToDispatch in m_VehiclesNotInUse) {
+						ref Vehicle l_vehicle = ref l_vehManager.m_vehicles.m_buffer[l_vehicleToDispatch];
+						Log._Debug($"DispatchManager.DispatchThread Unused Vehicle {l_vehicleToDispatch} data: m_flags: {l_vehicle.m_flags} m_transferSize: {l_vehicle.m_transferSize} type: {l_vehicle.Info.m_vehicleType}");
+					}*/
 				}
-				foreach (DispatchBufferItem l_buildingHandled in l_handledBuildingRequests) {
-					m_unhandledBuildingRequests.Remove(l_buildingHandled);
-				}
-				/*
-				foreach (ushort l_vehicleToDispatch in m_VehiclesNotInUse) {
-					ref Vehicle l_vehicle = ref l_vehManager.m_vehicles.m_buffer[l_vehicleToDispatch];
-					Log._Debug($"DispatchManager.DispatchThread Unused Vehicle {l_vehicleToDispatch} data: m_flags: {l_vehicle.m_flags} m_transferSize: {l_vehicle.m_transferSize} type: {l_vehicle.Info.m_vehicleType}");
-				}*/
+			} catch (Exception e) {
+				Log.Info($"DispatchManager.DispatchThread: Unhandled exception: {e.Message}:");
+				Log.Info(e.StackTrace);
 			}
 		}
 
@@ -550,6 +561,13 @@ namespace TrafficManager.Manager.Impl {
 					Log._Debug($"DispatchManager::RemoveBuildingFromOtherVehiclesQueue: Removed building {buildingId} from vehicle {m_BuildingsQueuedToVehicle[buildingId]} queue");
 					m_VehiclePickupQueue[m_BuildingsQueuedToVehicle[buildingId]].Remove(l_itemToRemove);
 				}
+			}
+			if (m_BuildingsToVehicleAssignment.ContainsKey(buildingId)) {
+				if (m_VehicleToBuildingAssignment.ContainsKey(m_BuildingsToVehicleAssignment[buildingId])) {
+					m_VehicleToBuildingAssignment.Remove(m_BuildingsToVehicleAssignment[buildingId]);
+				}
+				// Shouldn't be another vehicle, but remove it anyway
+				m_BuildingsToVehicleAssignment.Remove(buildingId);
 			}
 		}
 
