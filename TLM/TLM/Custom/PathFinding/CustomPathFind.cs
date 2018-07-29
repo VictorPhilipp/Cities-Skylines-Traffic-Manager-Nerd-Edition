@@ -546,6 +546,10 @@ namespace TrafficManager.Custom.PathFinding {
 			this.PathUnits.m_buffer[unit].m_length = duration;
 			this.PathUnits.m_buffer[unit].m_laneTypes = (byte)finalBufferItem.m_lanesUsed; // NON-STOCK CODE
 			this.PathUnits.m_buffer[unit].m_vehicleTypes = (ushort)finalBufferItem.m_vehiclesUsed; // NON-STOCK CODE
+
+			// Cities: Skylines uses m_speed to scale the length of lane in TransportLineAI.UpdatePath since 1.10.1-f2
+			// If we don't set this value, the scale factor will be 100 and the costs of public transport will be too high
+			this.PathUnits.m_buffer[unit].m_speed = (byte)Mathf.Clamp(finalBufferItem.m_methodDistance * 100.0f / Mathf.Max(0.01f, finalBufferItem.m_duration), 0.0f, 255.0f);
 #if DEBUG
 			/*if (_conf.Debug.Switches[4])
 				Log._Debug($"Lane/Vehicle types of path unit {unit}: {finalBufferItem.m_lanesUsed} / {finalBufferItem.m_vehiclesUsed}");*/
