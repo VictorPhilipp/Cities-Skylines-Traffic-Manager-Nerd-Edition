@@ -444,6 +444,18 @@ namespace TrafficManager.Custom.AI {
 
 				// check for arrival
 				if (targetPosIndex <= 0) {
+					if ((netManager.m_segments.m_buffer[(int)nextPathPos.m_segment].m_flags & NetSegment.Flags.Untouchable) != NetSegment.Flags.None && (netManager.m_segments.m_buffer[(int)currentPosition.m_segment].m_flags & NetSegment.Flags.Untouchable) == NetSegment.Flags.None)
+                                            {
+                                            ushort num16 = NetSegment.FindOwnerBuilding(nextPathPos.m_segment, 363f);
+                                            if (num16 != 0)
+                                               {
+                                               BuildingManager instance3 = Singleton<BuildingManager>.instance;
+                                               BuildingInfo info3 = instance3.m_buildings.m_buffer[(int)num16].Info;
+                                               InstanceID itemID = default(InstanceID);
+                                               itemID.Vehicle = vehicleID;
+                                               info3.m_buildingAI.EnterBuildingSegment(num16, ref instance3.m_buildings.m_buffer[(int)num16], nextPathPos.m_segment, nextPathPos.m_offset, itemID);
+                                               }
+					}
 					if (nextCoarsePathPosIndex == 0) {
 						Singleton<PathManager>.instance.ReleaseFirstUnit(ref vehicleData.m_path);
 					}
