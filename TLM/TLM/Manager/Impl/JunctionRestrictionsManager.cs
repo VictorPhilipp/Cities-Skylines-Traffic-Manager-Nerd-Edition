@@ -255,7 +255,7 @@ namespace TrafficManager.Manager.Impl {
 			bool debug = GlobalConfig.Instance.Debug.Switches[11];
 #endif
 
-			ITurnOnRedManager turnOnRedMan = Constants.ManagerFactory.TurnOnRedManager;
+			ITurnOnRedManager turnOnRedMan = TurnOnRedManager.Instance;
 			int index = turnOnRedMan.GetIndex(segmentId, startNode);
 			bool ret =
 				(node.m_flags & NetNode.Flags.TrafficLights) != NetNode.Flags.None &&

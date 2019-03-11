@@ -307,7 +307,7 @@ namespace TrafficManager.Manager.Impl {
 					if (
 						Options.turnOnRedEnabled &&
 						stopCar &&
-						sqrVelocity <= GlobalConfig.Instance.PriorityRules.MaxYieldVelocity * GlobalConfig.Instance.PriorityRules.MaxYieldVelocity &&
+						sqrVelocity <= GlobalConfig.Instance.PriorityRules.MaxYieldVelocity &&
 						JunctionRestrictionsManager.Instance.IsTurnOnRedAllowed(prevPos.m_segment, isTargetStartNode) &&
 						!isRecklessDriver
 					) {
