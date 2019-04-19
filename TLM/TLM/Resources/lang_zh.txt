@@ -225,7 +225,7 @@ Remove_this_citizen 移除此居民
 Show_error_message_if_a_mod_incompatibility_is_detected 检测到MOD不兼容时提示
 Remove_parked_vehicles 移除停放的车辆
 Node_is_level_crossing 此节点级别交汇，不可禁用红绿灯。
-Experimental_features Experimental features
-Turn_on_red Turn on red
-Vehicles_may_turn_on_red 车辆红灯可转弯
-Also_apply_to_left/right_turns_between_one-way_streets Also apply to left & right turns between one-way streets
+Experimental_features 实验特性
+Turn_on_red 红灯可转弯
+Vehicles_may_turn_on_red 车辆遇红灯可转弯
+Also_apply_to_left/right_turns_between_one-way_streets 单行道左右转也适用
