@@ -1,4 +1,4 @@
-﻿using ColossalFramework;
+using ColossalFramework;
 using CSUtil.Commons;
 using System;
 using System.Collections.Generic;
@@ -8,6 +8,7 @@ using TrafficManager.Geometry.Impl;
 using TrafficManager.State;
 using TrafficManager.Traffic;
 using TrafficManager.Traffic.Data;
+using TrafficManager.Traffic.Impl;
 using TrafficManager.Util;
 using static TrafficManager.Geometry.Impl.NodeGeometry;
 
@@ -88,7 +89,7 @@ namespace TrafficManager.Manager.Impl {
 
 			Log._Debug($"JunctionRestrictionsManager.MayHaveJunctionRestrictions({nodeId}): flags={(NetNode.Flags)flags}");
 
-			if (! LogicUtil.CheckFlags((uint)flags, (uint)(NetNode.Flags.Created | NetNode.Flags.Deleted), (uint)NetNode.Flags.Created)) {
+			if (!LogicUtil.CheckFlags((uint)flags, (uint)(NetNode.Flags.Created | NetNode.Flags.Deleted), (uint)NetNode.Flags.Created)) {
 				return false;
 			}
 
@@ -96,7 +97,7 @@ namespace TrafficManager.Manager.Impl {
 		}
 
 		public bool HasJunctionRestrictions(ushort nodeId) {
-			if (! Services.NetService.IsNodeValid(nodeId)) {
+			if (!Services.NetService.IsNodeValid(nodeId)) {
 				return false;
 			}
 
@@ -111,7 +112,7 @@ namespace TrafficManager.Manager.Impl {
 					? SegmentFlags[segmentId].startNodeFlags.IsDefault()
 					: SegmentFlags[segmentId].endNodeFlags.IsDefault();
 
-				if (! isDefault) {
+				if (!isDefault) {
 					ret = true;
 					return false;
 				}
@@ -134,7 +135,7 @@ namespace TrafficManager.Manager.Impl {
 				} else {
 					SegmentFlags[segmentId].endNodeFlags.Reset(false);
 				}
-				
+
 				return true;
 			});
 		}
@@ -157,7 +158,7 @@ namespace TrafficManager.Manager.Impl {
 						? SegmentFlags[geometry.SegmentId].startNodeFlags
 						: SegmentFlags[geometry.SegmentId].endNodeFlags;
 
-				if (! flags.IsDefault()) {
+				if (!flags.IsDefault()) {
 					AddInvalidSegmentEndFlags(geometry.SegmentId, startNode, ref flags);
 				}
 
@@ -169,20 +170,14 @@ namespace TrafficManager.Manager.Impl {
 			UpdateDefaults(geometry);
 		}
 
-		//public void UpdateAllDefaults() {
-		//	for (int i = 0; i < NetManager.MAX_SEGMENT_COUNT; ++i) {
-		//		UpdateDefaults((ushort)i);
-		//	}
-		//}
-
-		//public void UpdateDefaults(ushort segmentId) {
-		//	SegmentGeometry geo = SegmentGeometry.Get(segmentId);
-		//	if (! geo.IsValid()) {
-		//		return;
-		//	}
-
-		//	UpdateDefaults(segmentId);
-		//}
+		public void UpdateAllDefaults() {
+			for (uint segmentId = 0; segmentId < NetManager.MAX_SEGMENT_COUNT; ++segmentId) {
+				SegmentGeometry segGeo = SegmentGeometry.Get((ushort)segmentId);
+				if (segGeo != null) {
+					UpdateDefaults(segGeo);
+				}
+			}
+		}
 
 		protected void UpdateDefaults(SegmentGeometry geometry) {
 			//Log.Warning($"JunctionRestrictionsManager.HandleValidSegment({geometry.SegmentId}) called.");
@@ -253,6 +248,77 @@ namespace TrafficManager.Manager.Impl {
 
 		public bool IsUturnAllowed(ushort segmentId, bool startNode) {
 			return SegmentFlags[segmentId].IsUturnAllowed(startNode);
+		}
+
+		public bool IsNearTurnOnRedAllowedConfigurable(ushort segmentId, bool startNode, ref NetNode node) {
+			return IsTurnOnRedAllowedConfigurable(true, segmentId, startNode, ref node);
+		}
+
+		public bool IsFarTurnOnRedAllowedConfigurable(ushort segmentId, bool startNode, ref NetNode node) {
+			return IsTurnOnRedAllowedConfigurable(false, segmentId, startNode, ref node);
+		}
+
+		public bool IsTurnOnRedAllowedConfigurable(bool near, ushort segmentId, bool startNode, ref NetNode node) {
+#if DEBUG
+			bool debug = GlobalConfig.Instance.Debug.Switches[11];
+#endif
+
+			ITurnOnRedManager turnOnRedMan = Constants.ManagerFactory.TurnOnRedManager;
+			int index = turnOnRedMan.GetIndex(segmentId, startNode);
+			bool lhd = Services.SimulationService.LeftHandDrive;
+			bool ret =
+				(node.m_flags & NetNode.Flags.TrafficLights) != NetNode.Flags.None &&
+				(((lhd == near) && turnOnRedMan.TurnOnRedSegments[index].leftSegmentId != 0) ||
+				((!lhd == near) && turnOnRedMan.TurnOnRedSegments[index].rightSegmentId != 0));
+#if DEBUG
+			if (debug)
+				Log.Warning($"JunctionRestrictionsManager.IsTurnOnRedAllowedConfigurable({near}, {segmentId}, {startNode}): ret={ret}");
+#endif
+
+			return ret;
+		}
+
+		public bool GetDefaultNearTurnOnRedAllowed(ushort segmentId, bool startNode, ref NetNode node) {
+			return GetDefaultTurnOnRedAllowed(true, segmentId, startNode, ref node);
+		}
+
+		public bool GetDefaultFarTurnOnRedAllowed(ushort segmentId, bool startNode, ref NetNode node) {
+			return GetDefaultTurnOnRedAllowed(false, segmentId, startNode, ref node);
+		}
+
+		public bool GetDefaultTurnOnRedAllowed(bool near, ushort segmentId, bool startNode, ref NetNode node) {
+#if DEBUG
+			bool debug = GlobalConfig.Instance.Debug.Switches[11];
+#endif
+
+			if (!IsTurnOnRedAllowedConfigurable(near, segmentId, startNode, ref node)) {
+#if DEBUG
+				if (debug)
+					Log._Debug($"JunctionRestrictionsManager.IsTurnOnRedAllowedConfigurable({near}, {segmentId}, {startNode}): Setting is not configurable. res=false");
+#endif
+				return false;
+			}
+			
+			bool ret = near ? Options.allowNearTurnOnRed : Options.allowFarTurnOnRed;
+#if DEBUG
+			if (debug)
+				Log._Debug($"JunctionRestrictionsManager.GetTurnOnRedAllowed({near}, {segmentId}, {startNode}): Setting is configurable. ret={ret}, flags={node.m_flags}");
+#endif
+			return ret;
+		}
+
+		public bool IsTurnOnRedAllowed(bool near, ushort segmentId, bool startNode) {
+			return near
+				? IsNearTurnOnRedAllowed(segmentId, startNode)
+				: IsFarTurnOnRedAllowed(segmentId, startNode);
+		}
+
+		public bool IsNearTurnOnRedAllowed(ushort segmentId, bool startNode) {
+			return SegmentFlags[segmentId].IsNearTurnOnRedAllowed(startNode);
+		}
+
+		public bool IsFarTurnOnRedAllowed(ushort segmentId, bool startNode) {
+			return SegmentFlags[segmentId].IsFarTurnOnRedAllowed(startNode);
 		}
 
 		public bool IsLaneChangingAllowedWhenGoingStraightConfigurable(ushort segmentId, bool startNode, ref NetNode node) {
@@ -416,6 +482,20 @@ namespace TrafficManager.Manager.Impl {
 			return SegmentFlags[segmentId].GetUturnAllowed(startNode);
 		}
 
+		public TernaryBool GetNearTurnOnRedAllowed(ushort segmentId, bool startNode) {
+			return SegmentFlags[segmentId].GetNearTurnOnRedAllowed(startNode);
+		}
+
+		public TernaryBool GetFarTurnOnRedAllowed(ushort segmentId, bool startNode) {
+			return SegmentFlags[segmentId].GetFarTurnOnRedAllowed(startNode);
+		}
+
+		public TernaryBool GetTurnOnRedAllowed(bool near, ushort segmentId, bool startNode) {
+			return near
+				? GetNearTurnOnRedAllowed(segmentId, startNode)
+				: GetFarTurnOnRedAllowed(segmentId, startNode);
+		}
+
 		public TernaryBool GetLaneChangingAllowedWhenGoingStraight(ushort segmentId, bool startNode) {
 			return SegmentFlags[segmentId].GetLaneChangingAllowedWhenGoingStraight(startNode);
 		}
@@ -430,6 +510,18 @@ namespace TrafficManager.Manager.Impl {
 
 		public bool ToggleUturnAllowed(ushort segmentId, bool startNode) {
 			return SetUturnAllowed(segmentId, startNode, !IsUturnAllowed(segmentId, startNode));
+		}
+
+		public bool ToggleNearTurnOnRedAllowed(ushort segmentId, bool startNode) {
+			return ToggleTurnOnRedAllowed(true, segmentId, startNode);
+		}
+
+		public bool ToggleFarTurnOnRedAllowed(ushort segmentId, bool startNode) {
+			return ToggleTurnOnRedAllowed(false, segmentId, startNode);
+		}
+
+		public bool ToggleTurnOnRedAllowed(bool near, ushort segmentId, bool startNode) {
+			return SetTurnOnRedAllowed(near, segmentId, startNode, !IsTurnOnRedAllowed(near, segmentId, startNode));
 		}
 
 		public bool ToggleLaneChangingAllowedWhenGoingStraight(ushort segmentId, bool startNode) {
@@ -447,6 +539,14 @@ namespace TrafficManager.Manager.Impl {
 		private void SetSegmentEndFlags(ushort segmentId, bool startNode, SegmentEndFlags flags) {
 			if (flags.uturnAllowed != TernaryBool.Undefined) {
 				SetUturnAllowed(segmentId, startNode, flags.IsUturnAllowed());
+			}
+
+			if (flags.nearTurnOnRedAllowed != TernaryBool.Undefined) {
+				SetNearTurnOnRedAllowed(segmentId, startNode, flags.IsNearTurnOnRedAllowed());
+			}
+
+			if (flags.nearTurnOnRedAllowed != TernaryBool.Undefined) {
+				SetFarTurnOnRedAllowed(segmentId, startNode, flags.IsFarTurnOnRedAllowed());
 			}
 
 			if (flags.straightLaneChangingAllowed != TernaryBool.Undefined) {
@@ -467,7 +567,7 @@ namespace TrafficManager.Manager.Impl {
 			if (!Services.NetService.IsSegmentValid(segmentId)) {
 				return false;
 			}
-			if (!value && LaneConnectionManager.Instance.HasUturnConnections(segmentId, startNode)) {
+			if (!value && Constants.ManagerFactory.LaneConnectionManager.HasUturnConnections(segmentId, startNode)) {
 				return false;
 			}
 
@@ -478,6 +578,34 @@ namespace TrafficManager.Manager.Impl {
 			}
 
 			SegmentFlags[segmentId].SetUturnAllowed(startNode, value);
+			OnSegmentChange(segmentId, startNode, segGeo, true);
+			return true;
+		}
+
+		public bool SetNearTurnOnRedAllowed(ushort segmentId, bool startNode, bool value) {
+			return SetTurnOnRedAllowed(true, segmentId, startNode, value);
+		}
+
+		public bool SetFarTurnOnRedAllowed(ushort segmentId, bool startNode, bool value) {
+			return SetTurnOnRedAllowed(false, segmentId, startNode, value);
+		}
+
+		public bool SetTurnOnRedAllowed(bool near, ushort segmentId, bool startNode, bool value) {
+			if (!Services.NetService.IsSegmentValid(segmentId)) {
+				return false;
+			}
+
+			SegmentGeometry segGeo = SegmentGeometry.Get(segmentId);
+			if (segGeo == null) {
+				Log.Error($"JunctionRestrictionsManager.SetTurnOnRedAllowed: No geometry information available for segment {segmentId}");
+				return false;
+			}
+
+			if (near) {
+				SegmentFlags[segmentId].SetNearTurnOnRedAllowed(startNode, value);
+			} else {
+				SegmentFlags[segmentId].SetFarTurnOnRedAllowed(startNode, value);
+			}
 			OnSegmentChange(segmentId, startNode, segGeo, true);
 			return true;
 		}
@@ -497,7 +625,7 @@ namespace TrafficManager.Manager.Impl {
 			OnSegmentChange(segmentId, startNode, segGeo, true);
 			return true;
 		}
-		
+
 		public bool SetEnteringBlockedJunctionAllowed(ushort segmentId, bool startNode, bool value) {
 			if (!Services.NetService.IsSegmentValid(segmentId)) {
 				return false;
@@ -537,8 +665,8 @@ namespace TrafficManager.Manager.Impl {
 			HandleValidSegment(segGeo);
 
 			if (requireRecalc) {
-				RoutingManager.Instance.RequestRecalculation(segmentId);
-				if (OptionsManager.Instance.MayPublishSegmentChanges()) {
+				Constants.ManagerFactory.RoutingManager.RequestRecalculation(segmentId);
+				if (Constants.ManagerFactory.OptionsManager.MayPublishSegmentChanges()) {
 					Services.NetService.PublishSegmentChanges(segmentId);
 				}
 			}
@@ -573,6 +701,14 @@ namespace TrafficManager.Manager.Impl {
 							Services.NetService.ProcessNode(startNodeSegGeo.NodeId(), delegate (ushort nId, ref NetNode node) {
 								if (flags.uturnAllowed != null && IsUturnAllowedConfigurable(segNodeConf.segmentId, true, ref node)) {
 									SetUturnAllowed(segNodeConf.segmentId, true, (bool)flags.uturnAllowed);
+								}
+
+								if (flags.turnOnRedAllowed != null && IsNearTurnOnRedAllowedConfigurable(segNodeConf.segmentId, true, ref node)) {
+									SetNearTurnOnRedAllowed(segNodeConf.segmentId, true, (bool)flags.turnOnRedAllowed);
+								}
+
+								if (flags.farTurnOnRedAllowed != null && IsNearTurnOnRedAllowedConfigurable(segNodeConf.segmentId, true, ref node)) {
+									SetFarTurnOnRedAllowed(segNodeConf.segmentId, true, (bool)flags.farTurnOnRedAllowed);
 								}
 
 								if (flags.straightLaneChangingAllowed != null && IsLaneChangingAllowedWhenGoingStraightConfigurable(segNodeConf.segmentId, true, ref node)) {
@@ -615,6 +751,14 @@ namespace TrafficManager.Manager.Impl {
 								if (flags.pedestrianCrossingAllowed != null && IsPedestrianCrossingAllowedConfigurable(segNodeConf.segmentId, false, ref node)) {
 									SetPedestrianCrossingAllowed(segNodeConf.segmentId, false, (bool)flags.pedestrianCrossingAllowed);
 								}
+
+								if (flags.turnOnRedAllowed != null) {
+									SetNearTurnOnRedAllowed(segNodeConf.segmentId, false, (bool)flags.turnOnRedAllowed);
+								}
+
+								if (flags.farTurnOnRedAllowed != null) {
+									SetFarTurnOnRedAllowed(segNodeConf.segmentId, false, (bool)flags.farTurnOnRedAllowed);
+								}
 								return true;
 							});
 						} else {
@@ -651,6 +795,8 @@ namespace TrafficManager.Manager.Impl {
 							startNodeFlags = new Configuration.SegmentNodeFlags();
 
 							startNodeFlags.uturnAllowed = TernaryBoolUtil.ToOptBool(GetUturnAllowed((ushort)segmentId, true));
+							startNodeFlags.turnOnRedAllowed = TernaryBoolUtil.ToOptBool(GetNearTurnOnRedAllowed((ushort)segmentId, true));
+							startNodeFlags.farTurnOnRedAllowed = TernaryBoolUtil.ToOptBool(GetFarTurnOnRedAllowed((ushort)segmentId, true));
 							startNodeFlags.straightLaneChangingAllowed = TernaryBoolUtil.ToOptBool(GetLaneChangingAllowedWhenGoingStraight((ushort)segmentId, true));
 							startNodeFlags.enterWhenBlockedAllowed = TernaryBoolUtil.ToOptBool(GetEnteringBlockedJunctionAllowed((ushort)segmentId, true));
 							startNodeFlags.pedestrianCrossingAllowed = TernaryBoolUtil.ToOptBool(GetPedestrianCrossingAllowed((ushort)segmentId, true));
@@ -667,6 +813,8 @@ namespace TrafficManager.Manager.Impl {
 							endNodeFlags = new Configuration.SegmentNodeFlags();
 
 							endNodeFlags.uturnAllowed = TernaryBoolUtil.ToOptBool(GetUturnAllowed((ushort)segmentId, false));
+							endNodeFlags.turnOnRedAllowed = TernaryBoolUtil.ToOptBool(GetNearTurnOnRedAllowed((ushort)segmentId, false));
+							endNodeFlags.farTurnOnRedAllowed = TernaryBoolUtil.ToOptBool(GetFarTurnOnRedAllowed((ushort)segmentId, false));
 							endNodeFlags.straightLaneChangingAllowed = TernaryBoolUtil.ToOptBool(GetLaneChangingAllowedWhenGoingStraight((ushort)segmentId, false));
 							endNodeFlags.enterWhenBlockedAllowed = TernaryBoolUtil.ToOptBool(GetEnteringBlockedJunctionAllowed((ushort)segmentId, false));
 							endNodeFlags.pedestrianCrossingAllowed = TernaryBoolUtil.ToOptBool(GetPedestrianCrossingAllowed((ushort)segmentId, false));

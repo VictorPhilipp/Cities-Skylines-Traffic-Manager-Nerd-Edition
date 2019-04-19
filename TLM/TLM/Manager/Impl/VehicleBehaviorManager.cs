@@ -2,6 +2,7 @@
 using ColossalFramework.Math;
 using CSUtil.Commons;
 using CSUtil.Commons.Benchmark;
+using GenericGameBridge.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -302,6 +303,32 @@ namespace TrafficManager.Manager.Impl {
 					//}
 #endif
 
+					// Turn-on-red: Check if turning in the preferred direction, and if turning while it's red is allowed
+					if (
+						Options.turnOnRedEnabled &&
+						stopCar &&
+						(vehicleState.vehicleType & ExtVehicleType.RoadVehicle) != ExtVehicleType.None &&
+						sqrVelocity <= GlobalConfig.Instance.PriorityRules.MaxYieldVelocity * GlobalConfig.Instance.PriorityRules.MaxYieldVelocity &&
+						!isRecklessDriver
+					) {
+						IJunctionRestrictionsManager junctionRestrictionsManager = Constants.ManagerFactory.JunctionRestrictionsManager;
+						ITurnOnRedManager turnOnRedMan = Constants.ManagerFactory.TurnOnRedManager;
+						bool lhd = Constants.ServiceFactory.SimulationService.LeftHandDrive;
+						int torIndex = turnOnRedMan.GetIndex(prevPos.m_segment, isTargetStartNode);
+						if (
+							(turnOnRedMan.TurnOnRedSegments[torIndex].leftSegmentId == position.m_segment &&
+							junctionRestrictionsManager.IsTurnOnRedAllowed(lhd, prevPos.m_segment, isTargetStartNode)) ||
+							(turnOnRedMan.TurnOnRedSegments[torIndex].rightSegmentId == position.m_segment &&
+							junctionRestrictionsManager.IsTurnOnRedAllowed(!lhd, prevPos.m_segment, isTargetStartNode))
+						) {
+#if DEBUG
+							if (debug)
+								Log._Debug($"VehicleBehaviorManager.MayChangeSegment({frontVehicleId}): Vehicle may turn on red to target segment {position.m_segment}, lane {position.m_lane}");
+#endif
+							stopCar = false;
+						}
+					}
+
 					// check priority rules at unprotected traffic lights
 					if (!stopCar && Options.prioritySignsEnabled && Options.trafficLightPriorityRules && segLightsMan.IsSegmentLight(prevPos.m_segment, isTargetStartNode)) {
 						bool hasPriority = true;
@@ -317,7 +344,7 @@ namespace TrafficManager.Manager.Impl {
 							// green light but other cars are incoming and they have priority: stop
 #if DEBUG
 							if (debug)
-								Log._Debug($"VehicleBehaviorManager.MayChangeSegment({frontVehicleId}): Green traffic light but detected traffic with higher priority: stop.");
+								Log._Debug($"VehicleBehaviorManager.MayChangeSegment({frontVehicleId}): Green traffic light (or turn on red allowed) but detected traffic with higher priority: stop.");
 #endif
 							stopCar = true;
 						}
@@ -404,7 +431,7 @@ namespace TrafficManager.Manager.Impl {
 #endif
 										vehicleState.JunctionTransitState = VehicleJunctionTransitState.Stop;
 
-										if (sqrVelocity <= TrafficPriorityManager.MAX_SQR_STOP_VELOCITY) {
+										if (sqrVelocity <= GlobalConfig.Instance.PriorityRules.MaxStopVelocity * GlobalConfig.Instance.PriorityRules.MaxStopVelocity) {
 											vehicleState.waitTime++;
 
 											//float minStopWaitTime = Singleton<SimulationManager>.instance.m_randomizer.UInt32(3);
@@ -465,7 +492,7 @@ namespace TrafficManager.Manager.Impl {
 #endif
 										vehicleState.JunctionTransitState = VehicleJunctionTransitState.Stop;
 
-										if (sqrVelocity <= TrafficPriorityManager.MAX_SQR_YIELD_VELOCITY || Options.simAccuracy <= 2) {
+										if (sqrVelocity <= GlobalConfig.Instance.PriorityRules.MaxYieldVelocity * GlobalConfig.Instance.PriorityRules.MaxYieldVelocity || Options.simAccuracy <= 2) {
 											if (Options.simAccuracy >= 4) {
 												vehicleState.JunctionTransitState = VehicleJunctionTransitState.Leave;
 											} else {
@@ -494,7 +521,7 @@ namespace TrafficManager.Manager.Impl {
 #endif
 
 											// vehicle has not yet reached yield speed
-											maxSpeed = TrafficPriorityManager.MAX_YIELD_VELOCITY;
+											maxSpeed = GlobalConfig.Instance.PriorityRules.MaxYieldVelocity;
 											return false;
 										}
 									} else {
@@ -548,7 +575,7 @@ namespace TrafficManager.Manager.Impl {
 									}
 									return true;
 							}
-						} else if (sqrVelocity <= TrafficPriorityManager.MAX_SQR_STOP_VELOCITY && (vehicleState.vehicleType & ExtVehicleType.RoadVehicle) != ExtVehicleType.None) {
+						} else if (sqrVelocity <= GlobalConfig.Instance.PriorityRules.MaxStopVelocity * GlobalConfig.Instance.PriorityRules.MaxStopVelocity && (vehicleState.vehicleType & ExtVehicleType.RoadVehicle) != ExtVehicleType.None) {
 							// vehicle is not moving. reset allowance to leave junction
 #if DEBUG
 							if (debug)
@@ -662,7 +689,11 @@ namespace TrafficManager.Manager.Impl {
 			return maxSpeed;
 		}
 
-		public uint GetVehicleRand(ushort vehicleId) {
+		public uint GetStaticVehicleRand(ushort vehicleId) {
+			return vehicleId % 100u;
+		}
+
+		public uint GetTimedVehicleRand(ushort vehicleId) {
 			uint intv = VehicleState.MAX_TIMED_RAND / 2u;
 			uint range = intv * (uint)(vehicleId % (100u / intv)); // is one of [0, 50]
 			uint step = VehicleStateManager.Instance.VehicleStates[vehicleId].timedRand;
@@ -675,11 +706,11 @@ namespace TrafficManager.Manager.Impl {
 
 		public float ApplyRealisticSpeeds(float speed, ushort vehicleId, ref VehicleState state, VehicleInfo vehicleInfo) {
 			if (Options.realisticSpeeds) {
-				float vehicleRand = 0.01f * (float)GetVehicleRand(vehicleId);
+				float vehicleRand = 0.01f * (float)GetTimedVehicleRand(vehicleId);
 				if (vehicleInfo.m_isLargeVehicle) {
 					speed *= 0.75f + vehicleRand * 0.25f; // a little variance, 0.75 .. 1
 				} else if (state.recklessDriver) {
-					speed *= 1.3f + vehicleRand * 1.7f; // woohooo, 1.3 .. 3
+					speed *= 1.1f + vehicleRand * 0.5f; // woohooo, 1.1 .. 1.6
 				} else {
 					speed *= 0.8f + vehicleRand * 0.5f; // a little variance, 0.8 .. 1.3
 				}
@@ -1461,7 +1492,7 @@ namespace TrafficManager.Manager.Impl {
 				return false;
 			}
 
-			uint vehicleRand = GetVehicleRand(vehicleId);
+			uint vehicleRand = GetStaticVehicleRand(vehicleId);
 
 			if (vehicleRand < 100 - (int)Options.altLaneSelectionRatio) {
 #if DEBUG

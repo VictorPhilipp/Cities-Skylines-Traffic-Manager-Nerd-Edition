@@ -15,36 +15,22 @@ using static TrafficManager.Custom.PathFinding.CustomPathManager;
 namespace TrafficManager.Custom.AI {
 	public class CustomCargoTruckAI : CarAI {
 		public void CustomSimulationStep(ushort vehicleId, ref Vehicle vehicleData, Vector3 physicsLodRefPos) {
-			try {
-				// NON-STOCK CODE START
-				bool mayDespawn = true;
-#if BENCHMARK
-				using (var bm = new Benchmark(null, "MayDespawn")) {
-#endif
-					mayDespawn = (vehicleData.m_flags & Vehicle.Flags.Congestion) != 0 && VehicleBehaviorManager.Instance.MayDespawn(ref vehicleData);
-#if BENCHMARK
-				}
-#endif
-				// NON-STOCK CODE END
-
-				if (mayDespawn) {
-					Singleton<VehicleManager>.instance.ReleaseVehicle(vehicleId);
-				} else {
-					if ((vehicleData.m_flags & Vehicle.Flags.WaitingTarget) != 0 && (vehicleData.m_waitCounter += 1) > 20) {
-						RemoveOffers(vehicleId, ref vehicleData);
-						vehicleData.m_flags &= ~Vehicle.Flags.WaitingTarget;
-						vehicleData.m_flags |= Vehicle.Flags.GoingBack;
-						vehicleData.m_waitCounter = 0;
-						if (!StartPathFind(vehicleId, ref vehicleData)) {
-							vehicleData.Unspawn(vehicleId);
-						}
-					}
-
-					base.SimulationStep(vehicleId, ref vehicleData, physicsLodRefPos);
-				}
-			} catch (Exception ex) {
-				Log.Error("Error in CargoTruckAI.SimulationStep: " + ex.ToString());
+			if ((vehicleData.m_flags & Vehicle.Flags.Congestion) != 0 && VehicleBehaviorManager.Instance.MayDespawn(ref vehicleData)) {
+				Singleton<VehicleManager>.instance.ReleaseVehicle(vehicleId);
+				return;
 			}
+
+			if ((vehicleData.m_flags & Vehicle.Flags.WaitingTarget) != 0 && (vehicleData.m_waitCounter += 1) > 20) {
+				RemoveOffers(vehicleId, ref vehicleData);
+				vehicleData.m_flags &= ~Vehicle.Flags.WaitingTarget;
+				vehicleData.m_flags |= Vehicle.Flags.GoingBack;
+				vehicleData.m_waitCounter = 0;
+				if (!StartPathFind(vehicleId, ref vehicleData)) {
+					vehicleData.Unspawn(vehicleId);
+				}
+			}
+
+			base.SimulationStep(vehicleId, ref vehicleData, physicsLodRefPos);
 		}
 
 		// stock code
@@ -92,8 +78,8 @@ namespace TrafficManager.Custom.AI {
 			PathUnit.Position startAltPosB;
 			float startAltDistSqrA;
 			float startAltDistSqrB;
-			if (CustomPathManager.FindPathPosition(startPos, ItemClass.Service.PublicTransport, NetInfo.LaneType.Vehicle, VehicleInfo.VehicleType.Train | VehicleInfo.VehicleType.Ship, allowUnderground, false, 32f, out startAltPosA, out startAltPosB, out startAltDistSqrA, out startAltDistSqrB)) {
-				if (!startPosFound || startAltDistSqrA < startDistSqrA) {
+			if (CustomPathManager.FindPathPosition(startPos, ItemClass.Service.PublicTransport, NetInfo.LaneType.Vehicle, VehicleInfo.VehicleType.Train | VehicleInfo.VehicleType.Ship | VehicleInfo.VehicleType.Plane, allowUnderground, false, 32f, out startAltPosA, out startAltPosB, out startAltDistSqrA, out startAltDistSqrB)) {
+				if (!startPosFound || (startAltDistSqrA < startDistSqrA && (Mathf.Abs(endPos.x) > 8000f || Mathf.Abs(endPos.z) > 8000f))) {
 					startPosA = startAltPosA;
 					startPosB = startAltPosB;
 					startDistSqrA = startAltDistSqrA;
@@ -110,8 +96,8 @@ namespace TrafficManager.Custom.AI {
 			PathUnit.Position endAltPosB;
 			float endAltDistSqrA;
 			float endAltDistSqrB;
-			if (CustomPathManager.FindPathPosition(endPos, ItemClass.Service.PublicTransport, NetInfo.LaneType.Vehicle, VehicleInfo.VehicleType.Train | VehicleInfo.VehicleType.Ship, undergroundTarget, false, 32f, out endAltPosA, out endAltPosB, out endAltDistSqrA, out endAltDistSqrB)) {
-				if (!endPosFound || endAltDistSqrA < endDistSqrA) {
+			if (CustomPathManager.FindPathPosition(endPos, ItemClass.Service.PublicTransport, NetInfo.LaneType.Vehicle, VehicleInfo.VehicleType.Train | VehicleInfo.VehicleType.Ship | VehicleInfo.VehicleType.Plane, undergroundTarget, false, 32f, out endAltPosA, out endAltPosB, out endAltDistSqrA, out endAltDistSqrB)) {
+				if (!endPosFound || (endAltDistSqrA < endDistSqrA && (Mathf.Abs(endPos.x) > 8000f || Mathf.Abs(endPos.z) > 8000f))) {
 					endPosA = endAltPosA;
 					endPosB = endAltPosB;
 					endDistSqrA = endAltDistSqrA;
@@ -128,7 +114,7 @@ namespace TrafficManager.Custom.AI {
 					endPosB = default(PathUnit.Position);
 				}
 				NetInfo.LaneType laneTypes = NetInfo.LaneType.Vehicle | NetInfo.LaneType.CargoVehicle;
-				VehicleInfo.VehicleType vehicleTypes = VehicleInfo.VehicleType.Car | VehicleInfo.VehicleType.Train | VehicleInfo.VehicleType.Ship;
+				VehicleInfo.VehicleType vehicleTypes =  VehicleInfo.VehicleType.Car | VehicleInfo.VehicleType.Train | VehicleInfo.VehicleType.Ship | VehicleInfo.VehicleType.Plane;
 				uint path;
 				// NON-STOCK CODE START
 				PathCreationArgs args;

@@ -95,21 +95,25 @@ namespace TrafficManager {
 		[Serializable]
 		public class SegmentNodeFlags {
 			public bool? uturnAllowed = null;
+            public bool? turnOnRedAllowed = null; // controls near turns // TODO fix naming when the serialization system is updated
+			public bool? farTurnOnRedAllowed = null;
 			public bool? straightLaneChangingAllowed = null;
 			public bool? enterWhenBlockedAllowed = null;
 			public bool? pedestrianCrossingAllowed = null;
 
 			public bool IsDefault() {
 				bool uturnIsDefault = uturnAllowed == null || (bool)uturnAllowed == Options.allowUTurns;
+                bool turnOnRedIsDefault = turnOnRedAllowed == null || (bool)turnOnRedAllowed;
+				bool farTurnOnRedIsDefault = farTurnOnRedAllowed == null || (bool)farTurnOnRedAllowed;
 				bool straightChangeIsDefault = straightLaneChangingAllowed == null || (bool)straightLaneChangingAllowed == Options.allowLaneChangesWhileGoingStraight;
 				bool enterWhenBlockedIsDefault = enterWhenBlockedAllowed == null || (bool)enterWhenBlockedAllowed == Options.allowEnterBlockedJunctions;
 				bool pedCrossingIsDefault = pedestrianCrossingAllowed == null || (bool)pedestrianCrossingAllowed;
 
-				return uturnIsDefault && straightChangeIsDefault && enterWhenBlockedIsDefault && pedCrossingIsDefault;
+				return uturnIsDefault && turnOnRedIsDefault && farTurnOnRedIsDefault && straightChangeIsDefault && enterWhenBlockedIsDefault && pedCrossingIsDefault;
 			}
 
 			public override string ToString() {
-				return $"uturnAllowed={uturnAllowed}, straightLaneChangingAllowed={straightLaneChangingAllowed}, enterWhenBlockedAllowed={enterWhenBlockedAllowed}, pedestrianCrossingAllowed={pedestrianCrossingAllowed}";
+				return $"uturnAllowed={uturnAllowed}, turnOnRedAllowed={turnOnRedAllowed}, farTurnOnRedAllowed={farTurnOnRedAllowed}, straightLaneChangingAllowed={straightLaneChangingAllowed}, enterWhenBlockedAllowed={enterWhenBlockedAllowed}, pedestrianCrossingAllowed={pedestrianCrossingAllowed}";
 			}
 		}
 
